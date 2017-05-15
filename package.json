@@ -1,0 +1,19 @@
+{
+  "name": "gbaes6",
+  "version": "0.0.1",
+  "description": "GBA emulator in ECMAScript 6.",
+  "directories": {
+    "test": "test"
+  },
+  "author": "Luc Rubio <luc@loociano.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "mocha --compilers js:babel-register"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "^6.24.1",
+    "babel-register": "^6.24.1",
+    "chai": "^3.5.0",
+    "mocha": "^3.4.1"
+  }
+}
