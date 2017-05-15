@@ -20,9 +20,15 @@ export default class GBA {
   getCartridgeHeader() {
     return {
       _rom: this._rom,
+      /**
+       * @return {Array}
+       */
       getEntryPoint: function() {
         return Array.from(this._rom.subarray(c.ROM_HEADER_ENTRYPOINT_START, c.ROM_HEADER_ENTRYPOINT_END)).reverse();
       },
+      /**
+       * @return {Array}
+       */
       getNintendoLogo: function() {
         const ROM_HEADER_LENGTH = c.ROM_HEADER_LOGO_END - c.ROM_HEADER_LOGO_START;
         const array = [];
@@ -33,6 +39,14 @@ export default class GBA {
           array.push(this._rom[c.ROM_HEADER_LOGO_START + i + 0]);
         }
         return array;
+      },
+      /**
+       * @return {string} title
+       */
+      getGameTitle: function() {
+        return Array.from(this._rom.subarray(c.ROM_HEADER_TITLE_START, c.ROM_HEADER_TITLE_END))
+          .map( i => String.fromCharCode(i))
+          .join('');
       }
     };
   }
