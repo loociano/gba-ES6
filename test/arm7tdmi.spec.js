@@ -9,7 +9,10 @@ describe('ARM7TDMI tests', () => {
     cpu = new ARM7TDMI();
   });
 
-  it('should instantiate', () => {
-    assert.notEqual(cpu, null);
-  });
+  describe('Read/Write memory', () => {
+    it('should read a memory array', () => {
+      cpu.writeArray([1, 2, 3, 4], 0x100);
+      assert.deepEqual(cpu.readArray(0x100, 0x104), [4, 3, 2, 1]);
+    });
+  })
 });
