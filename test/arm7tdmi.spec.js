@@ -1,5 +1,6 @@
 import ARM7TDMI from '../src/arm7tdmi';
 import * as c from '../src/constants';
+import Utils from '../src/utils';
 import {describe, beforeEach, it} from 'mocha';
 import {assert} from 'chai';
 
@@ -58,11 +59,34 @@ describe('ARM7TDMI tests', () => {
   });
   describe('Branch', () => {
     it('should branch forward', () => {
-      const pc = 0x18;
+      const pc = 0;
+      const offset = 0x0a000000; // 10
+      const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + c.ARM_INSTR_LENGTH*2;
       cpu.pc = pc;
-      cpu.writeWord(0x000000ea, pc);
+      cpu.writeWord(0x000000ea + offset, pc);
       cpu.fetch().decode().execute();
-      assert.equal(cpu.pc, pc + c.ARM_INSTR_LENGTH*2);
+      assert.equal(calcOffset, 10*4 + c.ARM_INSTR_LENGTH*2);
+      assert.equal(cpu.pc, pc + calcOffset);
+    });
+    it('should branch backwards', () => {
+      const pc = 0x100;
+      const offset = 0xf6ffff00; // -10
+      const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + c.ARM_INSTR_LENGTH*2;
+      cpu.pc = pc;
+      cpu.writeWord(0x000000ea + offset, pc);
+      cpu.fetch().decode().execute();
+      assert.equal(calcOffset, -10*4 + c.ARM_INSTR_LENGTH*2);
+      assert.equal(cpu.pc, pc + calcOffset);
+    });
+    it('should branch to the same address', () => {
+      const pc = 0x100;
+      const offset = 0xfeffff00; // -2
+      const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + c.ARM_INSTR_LENGTH*2;
+      cpu.pc = pc;
+      cpu.writeWord(0x000000ea + offset, pc);
+      cpu.fetch().decode().execute();
+      assert.equal(calcOffset, 0);
+      assert.equal(cpu.pc, pc);
     });
   });
 });

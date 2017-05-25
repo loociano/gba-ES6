@@ -1,4 +1,5 @@
 import * as c from './constants';
+import Utils from './utils';
 
 /**
  * ARM7TDMI chip.
@@ -53,7 +54,7 @@ export default class ARM7TDMI {
    */
   _decodeBranch(word) {
     const offset = word & 0x00ffffff;
-    return ['b', this.pc + (offset << 2)];
+    return ['b', this.pc + (Utils.toSigned(offset) << 2)];
   }
 
   /**
