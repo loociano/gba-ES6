@@ -18,6 +18,7 @@ export default class ARM7TDMI {
 
   /**
    * @param {Uint8Array} BIOS
+   * @public
    */
   setBIOS(BIOS) {
     this._mmu.writeArray(BIOS, 0);
@@ -25,6 +26,7 @@ export default class ARM7TDMI {
 
   /**
    * @return {ARM7TDMI}
+   * @public
    */
   fetch() {
     this._fetch = this._mmu.readWord(this._pc);
@@ -32,12 +34,9 @@ export default class ARM7TDMI {
     return this;
   }
 
-  getFetched() {
-    return this._fetch;
-  }
-
   /**
    * @return {ARM7TDMI}
+   * @public
    */
   decode() {
     this._pc += 4;
@@ -51,8 +50,13 @@ export default class ARM7TDMI {
     return this;
   }
 
-  getDecoded() {
-    return this._decode;
+  /**
+   * @return {ARM7TDMI}
+   * @public
+   */
+  execute() {
+    this._opcodes[this._decode[0]].call(this, this._decode[1]);
+    return this;
   }
 
   /**
@@ -63,14 +67,6 @@ export default class ARM7TDMI {
   _decodeBranch(word) {
     const offset = word & 0x00ffffff;
     return ['b', this._pc + (Utils.toSigned(offset) << 2)];
-  }
-
-  /**
-   * @return {ARM7TDMI}
-   */
-  execute() {
-    this._opcodes[this._decode[0]].call(this, this._decode[1]);
-    return this;
   }
 
   // Instructions

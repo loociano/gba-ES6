@@ -34,6 +34,12 @@ describe('ARM7TDMI tests', () => {
     cpu.getPC = function() {
       return this._pc;
     };
+    cpu.getFetched = function() {
+      return this._fetch;
+    };
+    cpu.getDecoded = function() {
+      return this._decode;
+    };
   });
   describe('Read/Write memory', () => {
     it('should read a memory array', () => {
