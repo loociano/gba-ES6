@@ -15,6 +15,13 @@ export default class ARM7TDMI {
   }
 
   /**
+   * @param {Uint8Array} BIOS
+   */
+  setBIOS(BIOS) {
+    this._memory.set(BIOS, 0);
+  }
+
+  /**
    * @return {ARM7TDMI}
    */
   fetch() {
@@ -39,6 +46,8 @@ export default class ARM7TDMI {
       case 0x0a000000: // Branch
         this._decode = this._decodeBranch(this._fetch);
         break;
+      default:
+        throw new Error(`Unknown instruction: ${this._fetch.toString(16)}`);
     }
     return this;
   }

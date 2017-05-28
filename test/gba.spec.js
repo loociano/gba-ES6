@@ -1,20 +1,17 @@
-import ARM7TDMI from '../src/arm7tdmi';
 import GBA from '../src/gba';
 import {describe, beforeEach, it} from 'mocha';
 import {assert} from 'chai';
 
 describe('GBA tests', () => {
-  let gba, cpu, rom;
-
+  let gba, rom;
+  const bios = new Uint8Array(0);
   beforeEach(() => {
     rom = new Uint8Array(new Buffer('1234567824ffae51699aa2213d84820a84e409ad11248b98c0817f21a352be199309ce2010464a4' +
       'af82731ec58c7e83382e3cebf85f4df94ce4b09c194568ac01372a7fc9f844d73a3ca9a615897a327fc039876231dc7610304ae56bf38' +
       '840040a70efdff52fe036f9530f197fbc08560d68025a963be03014e38e2f9a234ffbb3e0344780090cb88113a9465c07c6387f03cafd' +
       '625e48b380aac7221d4f8074c554349414e4f525542494f', 'hex'));
-    cpu = new ARM7TDMI();
-    gba = new GBA(cpu, rom);
+    gba = new GBA(bios, rom);
   });
-
   describe('Cartridge Header', () => {
     it('should read the ROM entry point', () => {
       assert.deepEqual(gba.getCartridgeHeader().getEntryPoint(), [0x78, 0x56, 0x34, 0x12]);
