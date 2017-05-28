@@ -29,7 +29,7 @@ export default class MMU {
    * @param {number} word
    * @param {number} offset
    */
-  writeWord(word, offset) {
+  writeWord(word, offset=0) {
     if (word < 0 || word > 0xffffffff) throw new Error('WriteWordInvalidValue');
     if (offset < 0 || offset >= c.MEMORY_SIZE) throw new Error('ReadWordOutOfBounds');
     this._memory[offset++] = word >> 24 & 0xff;

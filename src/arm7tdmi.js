@@ -10,9 +10,10 @@ export default class ARM7TDMI {
    */
   constructor(MMU) {
     this._mmu = MMU;
-    this._pc = 0;
+    this._r = { r14: 0, pc: 0, cpsr: 0};
     this._opcodes = {
-      'b': this._b
+      'b': this._b,
+      'cmp': this._cmp
     };
   }
 
@@ -24,13 +25,17 @@ export default class ARM7TDMI {
     this._mmu.writeArray(BIOS, 0);
   }
 
+  getNZCVQ() {
+    return this._r.cpsr >>> 27;
+  }
+
   /**
    * @return {ARM7TDMI}
    * @public
    */
   fetch() {
-    this._fetch = this._mmu.readWord(this._pc);
-    this._pc += 4;
+    this._fetch = this._mmu.readWord(this._r.pc);
+    this._r.pc += 4;
     return this;
   }
 
@@ -39,10 +44,16 @@ export default class ARM7TDMI {
    * @public
    */
   decode() {
-    this._pc += 4;
-    switch (this._fetch & 0x0f000000) {
-      case 0x0a000000: // Branch
+    this._r.pc += 4;
+    switch (this._fetch >>> 24 & 0xf) {
+      case 0xa: // Branch
         this._decode = this._decodeBranch(this._fetch);
+        break;
+      case 0: // DataProc
+      case 1:
+      case 2:
+      case 3:
+        this._decode = this._decodeDataProc(this._fetch);
         break;
       default:
         throw new Error(`Unknown instruction: ${this._fetch.toString(16)}`);
@@ -55,7 +66,8 @@ export default class ARM7TDMI {
    * @public
    */
   execute() {
-    this._opcodes[this._decode[0]].call(this, this._decode[1]);
+    const op = this._decode.splice(0, 1);
+    this._opcodes[op].apply(this, this._decode);
     return this;
   }
 
@@ -66,7 +78,35 @@ export default class ARM7TDMI {
    */
   _decodeBranch(word) {
     const offset = word & 0x00ffffff;
-    return ['b', this._pc + (Utils.toSigned(offset) << 2)];
+    return ['b', this._r.pc + (Utils.toSigned(offset) << 2)];
+  }
+
+  /**
+   * @param {number} word
+   * @return {Array} instruction parameters
+   * @private
+   */
+  _decodeDataProc(word) {
+    let op, Rn, Op2;
+    switch (word >>> 21 & 0xf){
+      case 0xa:
+        op = 'cmp';
+        break;
+      default:
+        throw new Error('Unknown DataProc');
+    }
+    const immediate = word >>> 25 & 1 === 1;
+    switch (word >>> 16 & 0xf) {
+      case 14:
+        Rn = this._r.r14;
+        break;
+      default:
+        throw new Error('Unknown Rn');
+    }
+    if (immediate) {
+      Op2 = word & 0x00000fff; // TODO: calculate with ror
+    }
+    return [op, Rn, Op2];
   }
 
   // Instructions
@@ -76,7 +116,30 @@ export default class ARM7TDMI {
    * @param {number} addr
    * @private
    */
-  _b(addr){
-    this._pc = addr;
+  _b(addr) {
+    this._r.pc = addr;
+  }
+
+  /**
+   * @param Rn
+   * @param Op2
+   * @private
+   */
+  _cmp(Rn, Op2) {
+    const diff = Rn - Op2;
+    this._setZ(diff);
+  }
+
+  /**
+   * Sets flag Z according to value
+   * @param {number} value
+   * @private
+   */
+  _setZ(value) {
+    if (value === 0){
+      this._r.cpsr |= 0x40000000;
+    } else {
+      this._r.cpsr &= 0xbfffffff;
+    }
   }
 }

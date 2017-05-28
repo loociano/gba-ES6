@@ -26,13 +26,25 @@ describe('ARM7TDMI tests', () => {
      * @param {number} pc
      */
     cpu.setPC = function(pc) {
-      this._pc = pc;
+      this._r.pc = pc;
     };
     /**
      * @return {number} pc
      */
     cpu.getPC = function() {
-      return this._pc;
+      return this._r.pc;
+    };
+    /**
+     * @param {number} word
+     */
+    cpu.setR14 = function(word) {
+      this._r.r14 = word;
+    };
+    /**
+     * @param {number} word
+     */
+    cpu.setCPSR = function(word) {
+      this._r.cpsr = word;
     };
     cpu.getFetched = function() {
       return this._fetch;
@@ -47,6 +59,12 @@ describe('ARM7TDMI tests', () => {
       assert.equal(cpu.readWord(0x100), 0x04030201);
     });
   });
+  describe('Registrers', () => {
+    it('should read NZCVQ flags', () => {
+      cpu.setCPSR(0xf8000000);
+      assert.equal(cpu.getNZCVQ(), 0b11111);
+    });
+  });
   describe('Instruction pipeline', () => {
     it('should fetch, decode and execute an instruction', () => {
       const pc = 0;
@@ -57,7 +75,7 @@ describe('ARM7TDMI tests', () => {
         .decode()
         .execute();
       assert.deepEqual(cpu.getFetched(), 0xea000018);
-      assert.deepEqual(cpu.getDecoded(), ['b', 0x68]);
+      assert.deepEqual(cpu.getDecoded(), [0x68]);
       assert.equal(cpu.getPC(), 0x68);
     });
   });
@@ -93,5 +111,13 @@ describe('ARM7TDMI tests', () => {
       assert.equal(cpu.getPC(), pc);
     });
     // TODO: test offsets in memory boundaries.
+  });
+  describe('Compare', () => {
+    it('should compare two numbers', () => {
+      cpu.setR14(0);
+      cpu.writeWord(0x00005ee3);
+      cpu.fetch().decode().execute();
+      assert.equal(cpu.getNZCVQ(), 0b01000);
+    });
   });
 });
