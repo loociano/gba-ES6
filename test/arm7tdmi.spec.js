@@ -35,7 +35,19 @@ describe('ARM7TDMI tests', () => {
         array.push(this._memory[offset]);
       }
       return array;
-    }
+    };
+    /**
+     * @param {number} pc
+     */
+    cpu.setPC = function(pc) {
+      this._pc = pc;
+    };
+    /**
+     * @return {number} pc
+     */
+    cpu.getPC = function() {
+      return this._pc;
+    };
   });
   describe('Read/Write memory', () => {
     it('should read a memory array', () => {
@@ -46,7 +58,7 @@ describe('ARM7TDMI tests', () => {
   describe('Instruction pipeline', () => {
     it('should fetch, decode and execute an instruction', () => {
       const pc = 0;
-      cpu.pc = pc;
+      cpu.setPC(pc);
       cpu.writeWord(0x180000ea, pc);
       cpu
         .fetch()
@@ -54,7 +66,7 @@ describe('ARM7TDMI tests', () => {
         .execute();
       assert.deepEqual(cpu.getFetched(), 0xea000018);
       assert.deepEqual(cpu.getDecoded(), ['b', 0x68]);
-      assert.equal(cpu.pc, 0x68);
+      assert.equal(cpu.getPC(), 0x68);
     });
   });
   describe('Branch', () => {
@@ -62,31 +74,32 @@ describe('ARM7TDMI tests', () => {
       const pc = 0;
       const offset = 0x0a000000; // 10
       const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + c.ARM_INSTR_LENGTH*2;
-      cpu.pc = pc;
+      cpu.setPC(pc);
       cpu.writeWord(0x000000ea + offset, pc);
       cpu.fetch().decode().execute();
       assert.equal(calcOffset, 10*4 + c.ARM_INSTR_LENGTH*2);
-      assert.equal(cpu.pc, pc + calcOffset);
+      assert.equal(cpu.getPC(), pc + calcOffset);
     });
     it('should branch backwards', () => {
       const pc = 0x100;
       const offset = 0xf6ffff00; // -10
       const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + c.ARM_INSTR_LENGTH*2;
-      cpu.pc = pc;
+      cpu.setPC(pc);
       cpu.writeWord(0x000000ea + offset, pc);
       cpu.fetch().decode().execute();
       assert.equal(calcOffset, -10*4 + c.ARM_INSTR_LENGTH*2);
-      assert.equal(cpu.pc, pc + calcOffset);
+      assert.equal(cpu.getPC(), pc + calcOffset);
     });
     it('should branch to the same address', () => {
       const pc = 0x100;
       const offset = 0xfeffff00; // -2
       const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + c.ARM_INSTR_LENGTH*2;
-      cpu.pc = pc;
+      cpu.setPC(pc);
       cpu.writeWord(0x000000ea + offset, pc);
       cpu.fetch().decode().execute();
       assert.equal(calcOffset, 0);
-      assert.equal(cpu.pc, pc);
+      assert.equal(cpu.getPC(), pc);
     });
+    // TODO: test offsets in memory boundaries.
   });
 });

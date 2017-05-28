@@ -8,7 +8,7 @@ export default class ARM7TDMI {
 
   constructor() {
     this._memory = new Uint8Array(c.MEMORY_SIZE);
-    this.pc = 0;
+    this._pc = 0;
     this._opcodes = {
       'b': this._b
     };
@@ -25,11 +25,11 @@ export default class ARM7TDMI {
    * @return {ARM7TDMI}
    */
   fetch() {
-    this._fetch = this._memory[this.pc];
-    this._fetch += this._memory[this.pc+1] << 8;
-    this._fetch += this._memory[this.pc+2] << 16;
-    this._fetch += (this._memory[this.pc+3] << 24) >>> 0;
-    this.pc += 4;
+    this._fetch = this._memory[this._pc];
+    this._fetch += this._memory[this._pc+1] << 8;
+    this._fetch += this._memory[this._pc+2] << 16;
+    this._fetch += (this._memory[this._pc+3] << 24) >>> 0;
+    this._pc += 4;
     return this;
   }
 
@@ -41,7 +41,7 @@ export default class ARM7TDMI {
    * @return {ARM7TDMI}
    */
   decode() {
-    this.pc += 4;
+    this._pc += 4;
     switch (this._fetch & 0x0f000000) {
       case 0x0a000000: // Branch
         this._decode = this._decodeBranch(this._fetch);
@@ -63,7 +63,7 @@ export default class ARM7TDMI {
    */
   _decodeBranch(word) {
     const offset = word & 0x00ffffff;
-    return ['b', this.pc + (Utils.toSigned(offset) << 2)];
+    return ['b', this._pc + (Utils.toSigned(offset) << 2)];
   }
 
   /**
@@ -82,6 +82,6 @@ export default class ARM7TDMI {
    * @private
    */
   _b(addr){
-    this.pc = addr;
+    this._pc = addr;
   }
 }
