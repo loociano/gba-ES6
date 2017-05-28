@@ -1,4 +1,5 @@
 import ARM7TDMI from '../src/arm7tdmi';
+import MMU from '../src/mmu';
 import * as c from '../src/constants';
 import Utils from '../src/utils';
 import {describe, beforeEach, it} from 'mocha';
@@ -7,34 +8,19 @@ import {assert} from 'chai';
 describe('ARM7TDMI tests', () => {
   let cpu;
   beforeEach(() => {
-    cpu = new ARM7TDMI();
+    cpu = new ARM7TDMI(new MMU());
     /**
      * @param {number} word
-     * @param {number} pos
-     * @return {void}
+     * @param {number} offset
      */
-    cpu.writeWord = function(word, pos) {
-      this._memory[pos] = word >> 24 & 0xff;
-      this._memory[pos+1] = word >> 16 & 0xff;
-      this._memory[pos+2] = word >> 8 & 0xff;
-      this._memory[pos+3] = word & 0xff;
+    cpu.writeWord = function(word, offset) {
+      this._mmu.writeWord(word, offset);
     };
     /**
-     * @param {number} begin
-     * @param {number} end
-     * @return {Array}
+     * @param {number} offset
      */
-    cpu.readArray = function(begin, end) {
-      const length = end - begin;
-      const array = [];
-      for(let i = 0; i < length; i += 4){
-        const offset = begin + i;
-        array.push(this._memory[offset + 3]);
-        array.push(this._memory[offset + 2]);
-        array.push(this._memory[offset + 1]);
-        array.push(this._memory[offset]);
-      }
-      return array;
+    cpu.readWord = function(offset) {
+      return this._mmu.readWord(offset);
     };
     /**
      * @param {number} pc
@@ -52,7 +38,7 @@ describe('ARM7TDMI tests', () => {
   describe('Read/Write memory', () => {
     it('should read a memory array', () => {
       cpu.writeWord(0x01020304, 0x100);
-      assert.deepEqual(cpu.readArray(0x100, 0x104), [4, 3, 2, 1]);
+      assert.equal(cpu.readWord(0x100), 0x04030201);
     });
   });
   describe('Instruction pipeline', () => {

@@ -1,4 +1,3 @@
-import * as c from './constants';
 import Utils from './utils';
 
 /**
@@ -6,8 +5,11 @@ import Utils from './utils';
  */
 export default class ARM7TDMI {
 
-  constructor() {
-    this._memory = new Uint8Array(c.MEMORY_SIZE);
+  /**
+   * @param {MMU} MMU
+   */
+  constructor(MMU) {
+    this._mmu = MMU;
     this._pc = 0;
     this._opcodes = {
       'b': this._b
@@ -18,17 +20,14 @@ export default class ARM7TDMI {
    * @param {Uint8Array} BIOS
    */
   setBIOS(BIOS) {
-    this._memory.set(BIOS, 0);
+    this._mmu.writeArray(BIOS, 0);
   }
 
   /**
    * @return {ARM7TDMI}
    */
   fetch() {
-    this._fetch = this._memory[this._pc];
-    this._fetch += this._memory[this._pc+1] << 8;
-    this._fetch += this._memory[this._pc+2] << 16;
-    this._fetch += (this._memory[this._pc+3] << 24) >>> 0;
+    this._fetch = this._mmu.readWord(this._pc);
     this._pc += 4;
     return this;
   }

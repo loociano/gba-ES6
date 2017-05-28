@@ -1,5 +1,6 @@
 import * as c from './constants';
 import ARM7TDMI from './arm7tdmi';
+import MMU from './mmu';
 
 /**
  * GBA system
@@ -12,7 +13,7 @@ export default class GBA {
    */
   constructor(BIOS, ROM) {
     this._rom = ROM;
-    this._cpu = new ARM7TDMI();
+    this._cpu = new ARM7TDMI(new MMU());
     this._cpu.setBIOS(BIOS);
   }
 
