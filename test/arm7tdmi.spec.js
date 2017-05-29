@@ -114,10 +114,12 @@ describe('ARM7TDMI tests', () => {
   });
   describe('Compare', () => {
     it('should compare two numbers', () => {
+      const pc = cpu.getPC();
       cpu.setR14(0);
       cpu.writeWord(0x00005ee3);
       cpu.fetch().decode().execute();
       assert.equal(cpu.getNZCVQ(), 0b01000);
+      assert.equal(cpu.getPC(), pc + c.ARM_INSTR_LENGTH*2);
     });
   });
 });

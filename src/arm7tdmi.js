@@ -1,4 +1,5 @@
 import Utils from './utils';
+import Logger from './logger';
 
 /**
  * ARM7TDMI chip.
@@ -15,6 +16,9 @@ export default class ARM7TDMI {
       'b': this._b,
       'cmp': this._cmp
     };
+    this._fetch = null; // instruction word (raw)
+    this._decode = []; // decoded instruction [{string} opcode, ...{number} operands]
+    this._logPC = null;
   }
 
   /**
@@ -35,6 +39,7 @@ export default class ARM7TDMI {
    */
   fetch() {
     this._fetch = this._mmu.readWord(this._r.pc);
+    this._logPC = this._r.pc;
     this._r.pc += 4;
     return this;
   }
@@ -67,6 +72,7 @@ export default class ARM7TDMI {
    */
   execute() {
     const op = this._decode.splice(0, 1);
+    Logger.instr(this._logPC, op, this._decode);
     this._opcodes[op].apply(this, this._decode);
     return this;
   }
@@ -88,12 +94,13 @@ export default class ARM7TDMI {
    */
   _decodeDataProc(word) {
     let op, Rn, Op2;
-    switch (word >>> 21 & 0xf){
+    const opcode = word >>> 21 & 0xf;
+    switch (opcode){
       case 0xa:
         op = 'cmp';
         break;
       default:
-        throw new Error('Unknown DataProc');
+        throw new Error(`Unknown DataProc: ${Utils.toHex(opcode)}`);
     }
     const immediate = word >>> 25 & 1 === 1;
     switch (word >>> 16 & 0xf) {

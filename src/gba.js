@@ -1,6 +1,7 @@
 import * as c from './constants';
 import ARM7TDMI from './arm7tdmi';
 import MMU from './mmu';
+import Logger from './logger';
 
 /**
  * GBA system
@@ -18,8 +19,12 @@ export default class GBA {
   }
 
   start(){
-    while (true) {
-      this._cpu.fetch().decode().execute();
+    try {
+      while (true) {
+        this._cpu.fetch().decode().execute();
+      }
+    } catch (error) {
+      Logger.error(error);
     }
   }
 
