@@ -21,7 +21,7 @@ export default class GBA {
   start(){
     try {
       while (true) {
-        this._cpu.fetch().decode().execute();
+        this._cpu.execute().decode().fetch();
       }
     } catch (error) {
       Logger.error(error);
