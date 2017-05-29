@@ -20,4 +20,25 @@ export default class Utils {
     const mask = 1 << (unsigned.toString(16).replace(/^(.(..)*)$/, "0$1").length*4/*bits/digit*/ - 1);
     return -(unsigned & mask) + (unsigned & ~mask);
   }
+
+  /**
+   * @param {number} number
+   * @return {string} hex string
+   */
+  static toHex(number) {
+    return `0x${number.toString(16)}`;
+  }
+
+  /**
+   * @param {number} number
+   * @return {string} padded hex string (32 bits)
+   */
+  static to32hex(number) {
+    const hex = number.toString(16);
+    if (hex.length < 8){
+      return `0x${'0'.repeat(8 - hex.length)}${hex}`;
+    } else {
+      return `0x${hex}`;
+    }
+  }
 }

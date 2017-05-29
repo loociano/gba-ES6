@@ -36,4 +36,14 @@ describe('Utils', () => {
     assert.equal(Utils.toSigned(0xfffffe), -2);
     assert.equal(Utils.toSigned(0x800000/*max*/), -8388608);
   });
+  it('should format to hex', () => {
+    assert.equal(Utils.toHex(0), '0x0');
+    assert.equal(Utils.toHex(0x123), '0x123');
+  });
+  it('should format to 32 bits', () => {
+    assert.equal(Utils.to32hex(0), '0x00000000');
+    assert.equal(Utils.to32hex(0x123), '0x00000123');
+    assert.equal(Utils.to32hex(0x12345678), '0x12345678');
+    assert.equal(Utils.to32hex(0x123456789), '0x123456789');
+  });
 });
