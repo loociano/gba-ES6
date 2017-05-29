@@ -8,7 +8,7 @@ gba-ES6 is a free web Gameboy Advance Emulator written in ECMAScript 6.
 
 ```
 npm install
-npm build
+npm run build
 ```
 
 ## Test
@@ -20,7 +20,8 @@ npm test
 ## Run
 
 ```
-npm cli <bios file> <rom file>
+npm run build 
+npm run cli <bios file> <rom file>
 ```
 
 ## Author

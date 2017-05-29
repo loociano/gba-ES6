@@ -10,7 +10,7 @@
   "scripts": {
     "build": "babel src -d lib",
     "test": "mocha --compilers js:babel-register",
-    "cli": "npm run build && node ./lib/gba-cli.js"
+    "cli": "node ./lib/gba-cli.js"
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.24.1",
