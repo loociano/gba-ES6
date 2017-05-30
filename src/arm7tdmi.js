@@ -18,9 +18,10 @@ export default class ARM7TDMI {
       'cmp': this._cmp,
       'nop': this._nop
     };
-    this._fetched = [this._r.pc, 0]; // instruction word (raw)
-    this._decoded = ['nop']; // decoded instruction [{string} opcode, ...{number} operands]
-    this._logPC = 0;
+    // {Array} [{number} pc, {number} word]
+    this._fetched = [4, 0];
+    // {Array} decoded instruction [{number} pc, {string} opcode, ...{number} operands]
+    this._decoded = [0, 'nop'];
     this._r.pc = c.ARM_INSTR_LENGTH*2;
   }
 
@@ -49,8 +50,8 @@ export default class ARM7TDMI {
    */
   _fetch() {
     let readFrom;
-    if (this._decoded[0] === 'b'){
-      readFrom = this._decoded[1];
+    if (this._decoded[1] === 'b'){
+      readFrom = this._decoded[2];
     } else if (this._branched) {
       readFrom = this._r.pc + c.ARM_INSTR_LENGTH;
     } else {
@@ -72,7 +73,7 @@ export default class ARM7TDMI {
    */
   _decode() {
     if (this._fetched[1] === 0) {
-      this._decoded = ['nop'];
+      this._decoded = [this._fetched[0], 'nop'];
     } else {
       switch (this._fetched[1] >>> 24 & 0xf) {
         case 0xa: // Branch
@@ -82,7 +83,7 @@ export default class ARM7TDMI {
         case 1:
         case 2:
         case 3:
-          this._decoded = this._decodeDataProc(this._fetched[1]);
+          this._decoded = this._decodeDataProc(...this._fetched);
           break;
         default:
           throw new Error(`Unknown instruction: ${this._fetched[1].toString(16)}`);
@@ -97,8 +98,9 @@ export default class ARM7TDMI {
    */
   _execute() {
     if (this._decoded.length !== 0) {
+      const pc = this._decoded.splice(0, 1)[0];
       const op = this._decoded.splice(0, 1)[0];
-      Logger.instr(this._logPC, op, this._decoded);
+      Logger.instr(pc, op, this._decoded);
       this._opcodes[op].apply(this, this._decoded);
     }
     return this;
@@ -112,15 +114,16 @@ export default class ARM7TDMI {
    */
   _decodeBranch(pc, instr) {
     const offset = instr & 0x00ffffff;
-    return ['b', pc + c.ARM_INSTR_LENGTH*2 + (Utils.toSigned(offset)*4)];
+    return [pc, 'b', pc + c.ARM_INSTR_LENGTH*2 + (Utils.toSigned(offset)*4)];
   }
 
   /**
+   * @param {number} pc
    * @param {number} word
    * @return {Array} instruction parameters
    * @private
    */
-  _decodeDataProc(word) {
+  _decodeDataProc(pc, word) {
     let op, Rn, Op2;
     const opcode = word >>> 21 & 0xf;
     switch (opcode){
@@ -153,7 +156,7 @@ export default class ARM7TDMI {
     if (immediate) {
       Op2 = word & 0x00000fff; // TODO: calculate with ror
     }
-    return [op, Rn, Op2];
+    return [pc, op, Rn, Op2];
   }
 
   // Instructions
