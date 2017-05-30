@@ -15,11 +15,13 @@ export default class ARM7TDMI {
     this._r = { r0: 0, r1: 0, r2: 0, r3: 0, r14: 0, pc: 0, cpsr: 0};
     this._opcodes = {
       'b': this._b,
-      'cmp': this._cmp
+      'cmp': this._cmp,
+      'nop': this._nop
     };
-    this._fetch = null; // instruction word (raw)
-    this._decode = []; // decoded instruction [{string} opcode, ...{number} operands]
-    this._logPC = null;
+    this._fetched = [this._r.pc, 0]; // instruction word (raw)
+    this._decoded = ['nop']; // decoded instruction [{string} opcode, ...{number} operands]
+    this._logPC = 0;
+    this._r.pc = c.ARM_INSTR_LENGTH*2;
   }
 
   /**
@@ -35,79 +37,82 @@ export default class ARM7TDMI {
   }
 
   /**
-   * @return {ARM7TDMI}
    * @public
    */
-  fetch() {
+  cycle() {
+    this._execute()._decode()._fetch();
+  }
+
+  /**
+   * @return {ARM7TDMI}
+   * @private
+   */
+  _fetch() {
     let readFrom;
-    if (this._decode[0] === 'b'){
-      readFrom = this._decode[1];
+    if (this._decoded[0] === 'b'){
+      readFrom = this._decoded[1];
     } else if (this._branched) {
       readFrom = this._r.pc + c.ARM_INSTR_LENGTH;
-      this._branched = false;
     } else {
       readFrom = this._r.pc;
     }
-    this._fetch = this._mmu.readWord(readFrom); // TODO: save PC with fetched for better logging.
-    this._logPC = readFrom;
-
-    if (this._decode.length !== 0) {
-      this._r.pc += 8;
-    } else {
+    if (this._branched) {
+      this._branched = false;
       this._r.pc += 4;
     }
-    Logger.fetched(this._logPC, this._fetch);
+    this._fetched = [readFrom, this._mmu.readWord(readFrom)];
+    Logger.fetched(...this._fetched);
+    this._r.pc += 4;
     return this;
   }
 
   /**
    * @return {ARM7TDMI}
-   * @public
+   * @private
    */
-  decode() {
-    if (this._fetch !== null) {
-      switch (this._fetch >>> 24 & 0xf) {
+  _decode() {
+    if (this._fetched[1] === 0) {
+      this._decoded = ['nop'];
+    } else {
+      switch (this._fetched[1] >>> 24 & 0xf) {
         case 0xa: // Branch
-          this._decode = this._decodeBranch(this._fetch);
+          this._decoded = this._decodeBranch(...this._fetched);
           break;
         case 0: // DataProc
         case 1:
         case 2:
         case 3:
-          this._decode = this._decodeDataProc(this._fetch);
+          this._decoded = this._decodeDataProc(this._fetched[1]);
           break;
         default:
-          throw new Error(`Unknown instruction: ${this._fetch.toString(16)}`);
+          throw new Error(`Unknown instruction: ${this._fetched[1].toString(16)}`);
       }
     }
     return this;
   }
 
-  cycle() {
-    this.execute().decode().fetch();
-  }
-
   /**
    * @return {ARM7TDMI}
-   * @public
+   * @private
    */
-  execute() {
-    if (this._decode.length !== 0) {
-      const op = this._decode.splice(0, 1)[0];
-      Logger.instr(this._logPC, op, this._decode);
-      this._opcodes[op].apply(this, this._decode);
+  _execute() {
+    if (this._decoded.length !== 0) {
+      const op = this._decoded.splice(0, 1)[0];
+      Logger.instr(this._logPC, op, this._decoded);
+      this._opcodes[op].apply(this, this._decoded);
     }
     return this;
   }
 
   /**
-   * @param {number} word
+   * @param {number} pc
+   * @param {number} instr
    * @return {Array}
    * @private
    */
-  _decodeBranch(word) {
-    const offset = word & 0x00ffffff;
-    return ['b', this._r.pc + c.ARM_INSTR_LENGTH + (Utils.toSigned(offset) << 2)];
+  _decodeBranch(pc, instr) {
+    const offset = instr & 0x00ffffff;
+    return ['b', pc + c.ARM_INSTR_LENGTH*2 + (Utils.toSigned(offset)*4)];
   }
 
   /**
@@ -152,6 +157,8 @@ export default class ARM7TDMI {
   }
 
   // Instructions
+
+  _nop() {}
 
   /**
    * Branch

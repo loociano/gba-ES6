@@ -19,6 +19,10 @@ export default class Logger {
     console.info(` ${Utils.to32hex(pc)}  ${opcode} ${operands.map( (operand) => Utils.toHex(operand) ).toString()}`);
   }
 
+  /**
+   * @param {number} pc
+   * @param {number} word
+   */
   static fetched(pc, word) {
     console.info(`(${Utils.to32hex(pc)}) -> ${Utils.to32hex(word)}`);
   }
