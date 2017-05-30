@@ -19,6 +19,7 @@ export default class GBA {
   }
 
   start(){
+    this._cpu.boot();
     try {
       while (true) {
         this._cpu.cycle();

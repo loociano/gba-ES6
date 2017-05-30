@@ -19,10 +19,9 @@ export default class ARM7TDMI {
       'nop': this._nop
     };
     // {Array} [{number} pc, {number} word]
-    this._fetched = [4, 0];
+    this._fetched = null;
     // {Array} decoded instruction [{number} pc, {string} opcode, ...{number} operands]
-    this._decoded = [0, 'nop'];
-    this._r.pc = c.ARM_INSTR_LENGTH*2;
+    this._decoded = null;
   }
 
   /**
@@ -38,6 +37,13 @@ export default class ARM7TDMI {
   }
 
   /**
+   * Fills the fetched/decoded values
+   */
+  boot() {
+    this._fetch()._decode()._fetch();
+  }
+
+  /**
    * @public
    */
   cycle() {
@@ -50,7 +56,7 @@ export default class ARM7TDMI {
    */
   _fetch() {
     let readFrom;
-    if (this._decoded[1] === 'b'){
+    if (this._decoded !== null && this._decoded[1] === 'b'){
       readFrom = this._decoded[2];
     } else if (this._branched) {
       readFrom = this._r.pc + c.ARM_INSTR_LENGTH;
@@ -72,6 +78,8 @@ export default class ARM7TDMI {
    * @private
    */
   _decode() {
+    if (this._fetched === null) return this;
+
     if (this._fetched[1] === 0) {
       this._decoded = [this._fetched[0], 'nop'];
     } else {
@@ -97,7 +105,7 @@ export default class ARM7TDMI {
    * @private
    */
   _execute() {
-    if (this._decoded.length !== 0) {
+    if (this._decoded !== null) {
       const pc = this._decoded.splice(0, 1)[0];
       const op = this._decoded.splice(0, 1)[0];
       Logger.instr(pc, op, this._decoded);

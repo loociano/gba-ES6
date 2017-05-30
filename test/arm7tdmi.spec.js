@@ -74,6 +74,21 @@ describe('ARM7TDMI tests', () => {
     });
   });
   describe('Instruction pipeline', () => {
+    it('should bootstrap correctly', () => {
+      const pc = 0;
+      cpu.writeWord(0x000051e3, pc); // cmp r1,#0
+      cpu.writeWord(0x000052e3, pc+4); // cmp r2,#0
+      cpu.writeWord(0x000053e3, pc+8);
+      cpu.setR1(1);
+      cpu.setR2(2);
+      cpu.setR3(3);
+      cpu.boot();
+
+      cpu.cycle();
+      assert.deepEqual(cpu.getFetched(), [8, 0xe3530000]);
+      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 2, 0]);
+      assert.equal(cpu.getPC(), pc+12);
+    });
     it('should execute instructions in a pipeline', () => {
       const pc = 0;
       cpu.setDecoded([0, 'cmp', 0, 0]);
@@ -125,8 +140,9 @@ describe('ARM7TDMI tests', () => {
       const pc = 0;
       const offset = 0x0a000000; // 10
       const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + 8 + 8;
-      cpu.setPC(pc + 8);
+      cpu.writeWord(0, 4);
       cpu.writeWord(0x000000ea + offset, 8);
+      cpu.boot();
 
       cpu.cycle(); // fetch
       assert.deepEqual(cpu.getFetched(), [8, 0xea00000a]);
