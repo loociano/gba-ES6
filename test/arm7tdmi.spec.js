@@ -60,6 +60,9 @@ describe('ARM7TDMI tests', () => {
     cpu.setDecoded = function(array) {
       this._decoded = array;
     };
+
+    cpu.writeWord(0, 0); // 0x0 nop
+    cpu.writeWord(0, 4); // 0x4 nop
   });
   describe('Read/Write memory', () => {
     it('should read a memory array', () => {
@@ -86,7 +89,7 @@ describe('ARM7TDMI tests', () => {
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [8, 0xe3530000]);
-      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 2, 0]);
+      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 'r0', 2, 0]);
       assert.equal(cpu.getPC(), pc+12);
     });
     it('should execute instructions in a pipeline', () => {
@@ -103,12 +106,12 @@ describe('ARM7TDMI tests', () => {
       cpu.cycle();
       assert.equal(cpu.getPC(), pc + 12);
       assert.deepEqual(cpu.getFetched(), [8, 0xe3530000]);
-      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 1, 0]);
+      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 'r0', 1, 0]);
 
       cpu.cycle();
       assert.equal(cpu.getPC(), pc + 16);
       assert.deepEqual(cpu.getFetched(), [12, 0xe3540000]);
-      assert.deepEqual(cpu.getDecoded(), [8, 'cmp', 3, 0]);
+      assert.deepEqual(cpu.getDecoded(), [8, 'cmp', 'r0', 3, 0]);
     });
     it('should fetch, decode and execute an branching instruction', () => {
       const pc = 0;
@@ -131,7 +134,7 @@ describe('ARM7TDMI tests', () => {
 
       cpu.cycle(); // execute branch
       assert.deepEqual(cpu.getFetched(), [0x74, 0xffffffff]);
-      assert.deepEqual(cpu.getDecoded(), [0x70, 'cmp', 0, 0]);
+      assert.deepEqual(cpu.getDecoded(), [0x70, 'cmp', 'r0', 0, 0]);
       assert.equal(cpu.getPC(), 0x70 + 8);
     });
   });
@@ -225,11 +228,36 @@ describe('ARM7TDMI tests', () => {
     it('should compare two numbers', () => {
       const pc = cpu.getPC();
       cpu.setR14(1);
-      cpu.setDecoded([0, 'cmp', cpu.getR14(), 1]);
+      cpu.setDecoded([0, 'cmp', 'r0', 1, 1]);
 
       cpu.cycle();
       assert.equal(cpu.getNZCVQ(), 0b01000);
       assert.equal(cpu.getPC(), pc + 4);
+    });
+  });
+  describe('Store (move)', () => {
+    it('should store an immediate value into a register', () => {
+      const pc = cpu.getPC();
+      cpu.writeWord(0x04e0a003, pc); // mov r14,4
+      cpu.writeWord(0x00e0a003, pc+4); // mov r14,0  to test zero flag
+
+      cpu.cycle();
+      assert.deepEqual(cpu.getFetched(), [pc, 0x03a0e004]);
+      assert.equal(cpu.getPC(), pc + 4);
+
+      cpu.cycle();
+      assert.deepEqual(cpu.getFetched(), [pc+4, 0x03a0e000]);
+      assert.deepEqual(cpu.getDecoded(), [pc, 'mov', 'r14', 0, 4]);
+      assert.equal(cpu.getPC(), pc + 8);
+
+      cpu.cycle();
+      assert.equal(cpu.getR14(), 4);
+      assert.equal(cpu.getNZCVQ(), 0b00000);
+      assert.equal(cpu.getPC(), pc + 12);
+
+      cpu.cycle();
+      assert.equal(cpu.getR14(), 0);
+      assert.equal(cpu.getNZCVQ(), 0b01000);
     });
   });
 });

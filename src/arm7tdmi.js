@@ -14,9 +14,10 @@ export default class ARM7TDMI {
     this._mmu = MMU;
     this._r = { r0: 0, r1: 0, r2: 0, r3: 0, r14: 0, pc: 0, cpsr: 0};
     this._opcodes = {
+      'nop': this._nop,
       'b': this._b,
       'cmp': this._cmp,
-      'nop': this._nop
+      'mov': this._mov
     };
     // {Array} [{number} pc, {number} word]
     this._fetched = null;
@@ -132,11 +133,14 @@ export default class ARM7TDMI {
    * @private
    */
   _decodeDataProc(pc, word) {
-    let op, Rn, Op2;
+    let op, Rd, Rn, Op2;
     const opcode = word >>> 21 & 0xf;
     switch (opcode){
       case 0xa:
         op = 'cmp';
+        break;
+      case 0xd:
+        op = 'mov';
         break;
       default:
         throw new Error(`Unknown DataProc: ${Utils.toHex(opcode)}`);
@@ -161,10 +165,20 @@ export default class ARM7TDMI {
       default:
         throw new Error('Unknown Rn');
     }
+    switch (word >>> 12 & 0xf) {
+      case 0:
+        Rd = 'r0';
+        break;
+      case 14:
+        Rd = 'r14';
+        break;
+      default:
+        throw new Error('Unknown Rd');
+    }
     if (immediate) {
       Op2 = word & 0x00000fff; // TODO: calculate with ror
     }
-    return [pc, op, Rn, Op2];
+    return [pc, op, Rd, Rn, Op2];
   }
 
   // Instructions
@@ -182,13 +196,25 @@ export default class ARM7TDMI {
   }
 
   /**
-   * @param Rn
-   * @param Op2
+   * @param {number} Rd (unused)
+   * @param {number} value Rn
+   * @param {number} Op2
    * @private
    */
-  _cmp(Rn, Op2) {
+  _cmp(Rd, Rn, Op2) {
     const diff = Rn - Op2;
     this._setZ(diff);
+  }
+
+  /**
+   * @param {string} Rd name
+   * @param {string} Rn (unused)
+   * @param {number} Op2
+   * @private
+   */
+  _mov(Rd, Rn, Op2) {
+    this._r[Rd] = Op2;
+    this._setZ(Op2);
   }
 
   /**
