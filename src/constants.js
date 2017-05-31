@@ -1,4 +1,5 @@
-export const MEMORY_SIZE = 0x8000000;
+export const MEMORY_SIZE = 0x08000000;
+export const EXT_MEMORY_SIZE = 0x08000000;
 
 export const ARM_INSTR_LENGTH = 4;
 

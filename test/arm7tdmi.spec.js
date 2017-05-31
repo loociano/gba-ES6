@@ -7,8 +7,9 @@ import {assert} from 'chai';
 
 describe('ARM7TDMI tests', () => {
   let cpu;
+  const rom = new Uint8Array(c.EXT_MEMORY_SIZE);
   beforeEach(() => {
-    cpu = new ARM7TDMI(new MMU());
+    cpu = new ARM7TDMI(new MMU(rom));
     /**
      * @param {number} word
      * @param {number} offset

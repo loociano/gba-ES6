@@ -2,8 +2,12 @@ import * as c from './constants';
 
 export default class MMU {
 
-  constructor() {
+  /**
+   * @param {Uint8Array} rom
+   */
+  constructor(rom) {
     this._memory = new Uint8Array(c.MEMORY_SIZE);
+    this._rom = rom;
   }
 
   /**
@@ -11,8 +15,12 @@ export default class MMU {
    * @return {number} value
    */
   readByte(offset) {
-    if (offset < 0 || offset >= c.MEMORY_SIZE) throw new Error('ReadByteOutOfBounds');
-    return this._memory[offset];
+    if (offset < 0 || offset >= c.MEMORY_SIZE+c.EXT_MEMORY_SIZE) throw new Error('ReadByteOutOfBounds');
+    if (offset < c.MEMORY_SIZE) {
+      return this._memory[offset];
+    } else {
+      return this._rom[offset - c.MEMORY_SIZE];
+    }
   }
 
   /**
@@ -43,11 +51,15 @@ export default class MMU {
    * @return {number} word
    */
   readWord(offset) {
-    if (offset < 0 || offset >= c.MEMORY_SIZE) throw new Error('ReadWordOutOfBounds');
-    return (this._memory[offset+3] << 24 >>> 0)
-      + (this._memory[offset+2] << 16 >>> 0)
-      + (this._memory[offset+1] << 8 >>> 0)
-      + (this._memory[offset] >>> 0);
+    if (offset < 0 || offset >= c.MEMORY_SIZE+c.EXT_MEMORY_SIZE) throw new Error('ReadWordOutOfBounds');
+    if (offset < c.MEMORY_SIZE) {
+      return (this._memory[offset + 3] << 24 >>> 0) + (this._memory[offset + 2] << 16 >>> 0)
+        + (this._memory[offset + 1] << 8 >>> 0) + (this._memory[offset] >>> 0);
+    } else {
+      const base = offset - c.MEMORY_SIZE;
+      return (this._rom[base + 3] << 24 >>> 0) + (this._rom[base + 2] << 16 >>> 0)
+        + (this._rom[base + 1] << 8 >>> 0) + (this._rom[base] >>> 0);
+    }
   }
 
   /**
