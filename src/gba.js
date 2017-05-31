@@ -13,6 +13,8 @@ export default class GBA {
    * @param ROM
    */
   constructor(BIOS, ROM) {
+    if (BIOS === undefined) throw new Error('Missing BIOS');
+    if (ROM === undefined) throw new Error('Missing ROM');
     this._rom = ROM;
     this._cpu = new ARM7TDMI(new MMU());
     this._cpu.setBIOS(BIOS);

@@ -2,6 +2,14 @@ import GBA from '../src/gba';
 import {describe, beforeEach, it} from 'mocha';
 import {assert} from 'chai';
 
+describe('GBA initialization', () => {
+  it('should validate inputs', () => {
+    let gba;
+    assert.throws( () => gba = new GBA(), Error);
+    assert.throws( () => gba = new GBA(new Uint8Array(0)), Error);
+  });
+});
+
 describe('GBA tests', () => {
   let gba, rom;
   const bios = new Uint8Array(0);
