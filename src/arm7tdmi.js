@@ -12,7 +12,7 @@ export default class ARM7TDMI {
    */
   constructor(MMU) {
     this._mmu = MMU;
-    this._r = { r0: 0, r1: 0, r2: 0, r3: 0, r14: 0, pc: 0, cpsr: 0};
+    this._r = { r0: 0, r1: 0, r2: 0, r3: 0, r12: 0, r14: 0, pc: 0, cpsr: 0};
     this._opcodes = {
       'nop': this._nop,
       'b': this._b,
@@ -169,6 +169,9 @@ export default class ARM7TDMI {
       case 0:
         Rd = 'r0';
         break;
+      case 12:
+        Rd = 'r12';
+        break;
       case 14:
         Rd = 'r14';
         break;
@@ -176,7 +179,9 @@ export default class ARM7TDMI {
         throw new Error('Unknown Rd');
     }
     if (immediate) {
-      Op2 = word & 0x00000fff; // TODO: calculate with ror
+      Op2 = Utils.ror(word & 0xff, (word >>> 8 & 0xf)*2);
+    } else {
+      throw new Error('TODO: Op2 is a register');
     }
     return [pc, op, Rd, Rn, Op2];
   }

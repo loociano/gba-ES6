@@ -40,6 +40,7 @@ describe('ARM7TDMI tests', () => {
     cpu.setR1 = function(word) { this._r.r1 = word; };
     cpu.setR2 = function(word) { this._r.r2 = word; };
     cpu.setR3 = function(word) { this._r.r3 = word; };
+    cpu.getR12 = function() { return this._r.r12; };
     cpu.setR14 = function(word) { this._r.r14 = word; };
     cpu.getR14 = function() { return this._r.r14 };
     /**
@@ -240,6 +241,7 @@ describe('ARM7TDMI tests', () => {
       const pc = cpu.getPC();
       cpu.writeWord(0x04e0a003, pc); // mov r14,4
       cpu.writeWord(0x00e0a003, pc+4); // mov r14,0  to test zero flag
+      cpu.writeWord(0x01c3a003, pc+8); // mov r12,0x4000000 test rotated immediate
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [pc, 0x03a0e004]);
@@ -251,13 +253,20 @@ describe('ARM7TDMI tests', () => {
       assert.equal(cpu.getPC(), pc + 8);
 
       cpu.cycle();
+      assert.deepEqual(cpu.getFetched(), [pc+8, 0x03a0c301]);
+      assert.deepEqual(cpu.getDecoded(), [pc+4, 'mov', 'r14', 0, 0]);
       assert.equal(cpu.getR14(), 4);
       assert.equal(cpu.getNZCVQ(), 0b00000);
       assert.equal(cpu.getPC(), pc + 12);
 
       cpu.cycle();
+      assert.deepEqual(cpu.getDecoded(), [pc+8, 'mov', 'r12', 0, 0x4000000]);
       assert.equal(cpu.getR14(), 0);
       assert.equal(cpu.getNZCVQ(), 0b01000);
+
+      cpu.cycle();
+      assert.equal(cpu.getR12(), 0x4000000);
+      assert.equal(cpu.getNZCVQ(), 0b00000);
     });
   });
 });
