@@ -46,4 +46,12 @@ describe('Utils', () => {
     assert.equal(Utils.to32hex(0x12345678), '0x12345678');
     assert.equal(Utils.to32hex(0x123456789), '0x123456789');
   });
+  it('should ROR a word', () => {
+    assert.equal(Utils.ror(0, 0), 0);
+    assert.equal(Utils.ror(1, 1), 0x80000000);
+    assert.equal(Utils.ror(0x3, 2), 0xc0000000);
+    assert.equal(Utils.ror(1, 31), 0x2);
+    assert.equal(Utils.ror(1, 32), 1);
+    assert.equal(Utils.ror(1, 33), 0x80000000);
+  });
 });

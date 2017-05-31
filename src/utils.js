@@ -41,4 +41,13 @@ export default class Utils {
       return `0x${hex}`;
     }
   }
+
+  /**
+   * @param {number} word
+   * @param {number} shift
+   * @return {number} rotated word
+   */
+  static ror(word, shift) {
+    return ((word >>> shift) | (word << (32 - shift))) >>> 0;
+  }
 }
