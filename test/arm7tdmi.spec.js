@@ -38,6 +38,7 @@ describe('ARM7TDMI tests', () => {
     /**
      * @param {number} word
      */
+    cpu.getR0 = function() { return this._r.r0; };
     cpu.setR1 = function(word) { this._r.r1 = word; };
     cpu.setR2 = function(word) { this._r.r2 = word; };
     cpu.setR3 = function(word) { this._r.r3 = word; };
@@ -237,7 +238,7 @@ describe('ARM7TDMI tests', () => {
       assert.equal(cpu.getPC(), pc + 4);
     });
   });
-  describe('Store (move)', () => {
+  describe('Move', () => {
     it('should store an immediate value into a register', () => {
       const pc = cpu.getPC();
       cpu.writeWord(0x04e0a003, pc); // mov r14,4
@@ -268,6 +269,26 @@ describe('ARM7TDMI tests', () => {
       cpu.cycle();
       assert.equal(cpu.getR12(), 0x4000000);
       assert.equal(cpu.getNZCVQ(), 0b00000);
+    });
+  });
+  describe('Load', () => {
+    it('should load a value from memory to register', () => {
+      const pc = cpu.getPC();
+      cpu.setR1(0x08000000);
+      cpu.writeWord(0x000391e5, pc); // ldr r0,[r1,0x300]
+      rom[0x300] = 0x12;
+      rom[0x301] = 0x34;
+      rom[0x302] = 0x56;
+      rom[0x303] = 0x78;
+
+      cpu.cycle();
+      assert.deepEqual(cpu.getFetched(), [pc, 0xe5910300]);
+
+      cpu.cycle();
+      assert.deepEqual(cpu.getDecoded(), [pc, 'ldr', 'r0'/*dest*/, 0x08000300]);
+
+      cpu.cycle();
+      assert.equal(cpu.getR0(), 0x78563412);
     });
   });
 });

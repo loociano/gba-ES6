@@ -17,7 +17,8 @@ export default class ARM7TDMI {
       'nop': this._nop,
       'b': this._b,
       'cmp': this._cmp,
-      'mov': this._mov
+      'mov': this._mov,
+      'ldr': this._ldr
     };
     // {Array} [{number} pc, {number} word]
     this._fetched = null;
@@ -93,6 +94,10 @@ export default class ARM7TDMI {
         case 2:
         case 3:
           this._decoded = this._decodeDataProc(...this._fetched);
+          break;
+        case 4: // SingleDataTransfer
+        case 5:
+          this._decoded = this._decodeDataTransfer(...this._fetched);
           break;
         default:
           throw new Error(`Unknown instruction: ${this._fetched[1].toString(16)}`);
@@ -186,6 +191,34 @@ export default class ARM7TDMI {
     return [pc, op, Rd, Rn, Op2];
   }
 
+  /**
+   * @param pc
+   * @param word
+   * @private
+   */
+  _decodeDataTransfer(pc, word) {
+    let Rn, Rd, offset, address;
+    let op = 'str';
+    const I = (word >>> 25 & 1) === 1;
+    const P = (word >>> 24 & 1) === 1;
+    const U = (word >>> 23 & 1) === 1;
+    if ((word >>> 20 & 1) === 1) op = 'ldr';
+    Rn = `r${word >>> 16 & 0xf}`;
+    Rd = `r${word >>> 12 & 0xf}`;
+    if (!I) {
+      offset = word & 0xfff;
+    } else {
+      throw new Error('Shifted register');
+    }
+    if (!U) offset = -offset;
+    if (P) {
+      address = this._r[Rn] + offset;
+    } else {
+      throw new Error('Post indexed');
+    }
+    return [pc, op, Rd, address];
+  }
+
   // Instructions
 
   _nop() {}
@@ -220,6 +253,15 @@ export default class ARM7TDMI {
   _mov(Rd, Rn, Op2) {
     this._r[Rd] = Op2;
     this._setZ(Op2);
+  }
+
+  /**
+   * @param {string} Rd
+   * @param {number} address
+   * @private
+   */
+  _ldr(Rd, address) {
+    this._r[Rd] = this._mmu.readWord(address);
   }
 
   /**
