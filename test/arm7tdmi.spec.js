@@ -35,16 +35,10 @@ describe('ARM7TDMI tests', () => {
     cpu.getPC = function() {
       return this._r.pc;
     };
-    /**
-     * @param {number} word
-     */
-    cpu.getR0 = function() { return this._r.r0; };
-    cpu.setR1 = function(word) { this._r.r1 = word; };
-    cpu.setR2 = function(word) { this._r.r2 = word; };
-    cpu.setR3 = function(word) { this._r.r3 = word; };
-    cpu.getR12 = function() { return this._r.r12; };
-    cpu.setR14 = function(word) { this._r.r14 = word; };
-    cpu.getR14 = function() { return this._r.r14 };
+    for (let r = 0; r < 16; r++) {
+      cpu[`setR${r}`] = (word) => { cpu._r[`r${r}`] = word; };
+      cpu[`getR${r}`] = () => cpu._r[`r${r}`];
+    }
     /**
      * @param {number} word
      */
@@ -289,6 +283,23 @@ describe('ARM7TDMI tests', () => {
 
       cpu.cycle();
       assert.equal(cpu.getR0(), 0x78563412);
+    });
+  });
+  describe('Data Processing (ALU)', () => {
+    it('should test exclusive (XOR)', () => {
+      const pc = cpu.getPC();
+      cpu.setR0(1);
+      cpu.writeWord(0x010030e3, pc); // teq r0,#1
+
+      cpu.cycle();
+      assert.deepEqual(cpu.getFetched(), [pc, 0xe3300001]);
+
+      cpu.cycle();
+      assert.deepEqual(cpu.getDecoded(), [pc, 'teq', 'r0', 1, 1]);
+
+      cpu.cycle(); // 1 XOR 1 = 0
+      assert.equal(cpu.getR0(), 1, 'register unchanged');
+      assert.equal(cpu.getNZCVQ(), 0b01000); // V unaffected
     });
   });
 });

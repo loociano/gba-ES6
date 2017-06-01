@@ -18,7 +18,8 @@ export default class ARM7TDMI {
       'b': this._b,
       'cmp': this._cmp,
       'mov': this._mov,
-      'ldr': this._ldr
+      'ldr': this._ldr,
+      'teq': this._teq
     };
     // {Array} [{number} pc, {number} word]
     this._fetched = null;
@@ -141,48 +142,18 @@ export default class ARM7TDMI {
     let op, Rd, Rn, Op2;
     const opcode = word >>> 21 & 0xf;
     switch (opcode){
+      case 9:
+        op = 'teq'; break;
       case 0xa:
-        op = 'cmp';
-        break;
+        op = 'cmp'; break;
       case 0xd:
-        op = 'mov';
-        break;
+        op = 'mov'; break;
       default:
         throw new Error(`Unknown DataProc: ${Utils.toHex(opcode)}`);
     }
     const immediate = word >>> 25 & 1 === 1;
-    switch (word >>> 16 & 0xf) {
-      case 0:
-        Rn = this._r.r0;
-        break;
-      case 1:
-        Rn = this._r.r1;
-        break;
-      case 2:
-        Rn = this._r.r2;
-        break;
-      case 3:
-        Rn = this._r.r3;
-        break;
-      case 14:
-        Rn = this._r.r14;
-        break;
-      default:
-        throw new Error('Unknown Rn');
-    }
-    switch (word >>> 12 & 0xf) {
-      case 0:
-        Rd = 'r0';
-        break;
-      case 12:
-        Rd = 'r12';
-        break;
-      case 14:
-        Rd = 'r14';
-        break;
-      default:
-        throw new Error('Unknown Rd');
-    }
+    Rn = this._r[`r${word >>> 16 & 0xf}`];
+    Rd = `r${word >>> 12 & 0xf}`;
     if (immediate) {
       Op2 = Utils.ror(word & 0xff, (word >>> 8 & 0xf)*2);
     } else {
@@ -262,6 +233,17 @@ export default class ARM7TDMI {
    */
   _ldr(Rd, address) {
     this._r[Rd] = this._mmu.readWord(address);
+  }
+
+  /**
+   * @param {string} Rd
+   * @param {string} Rn (unused)
+   * @param {string} Op2
+   * @private
+   */
+  _teq(Rd, Rn, Op2) {
+    const xor = (Rn ^ Op2) >>> 0;
+    this._setZ(xor);
   }
 
   /**
