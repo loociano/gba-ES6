@@ -1,0 +1,71 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+ul {
+    list-style: none;
+}
+#debugger {
+    margin: 10px;
+    width: auto;
+    font-family: 'Ubuntu Mono', monospace;
+}
+#debugger button {
+    font-family: 'Ubuntu Mono', monospace;
+    padding: 3px;
+}
+#debugger ul {
+    overflow-y: auto;
+}
+#menubar li {
+    cursor: pointer;
+}
+#menu li {
+    display: inline-block;
+}
+#debugger ul {
+    padding: 5px;
+}
+#debugger li {
+    transition: background-color 0.2s ease;
+}
+#memory, #stack, #program, #screen canvas {
+    border: 1px solid #c3c3c3;
+}
+#program, #program ul, #cpu, #cpu ul {
+    height: 304px;
+}
+#stack, #stack ul {
+    width: 160px;
+}
+#memory, #memory ul, #stack, #stack ul {
+    height: 177px;
+}
+#memory, #memory ul {
+    width: 420px;
+}
+#flags {
+    vertical-align: top;
+}
+#debugger li.selected {
+    background-color: black;
+    color: white;
+}
+#debugger li.selected:hover {
+    color: black;
+}
+#program li:hover, #cpu li:hover, #stack li:hover {
+    background-color: #ccc;
+}
+#program ul, #cpu ul, #stack ul, #flags label, #flags input[type="checkbox"] {
+    cursor: pointer;
+}
+#screen canvas {
+    width: 480px;
+    height: 320px;
+    background-color: #ececec;
+}
+#controls {
+    vertical-align: top;
+    text-align: center;
+}

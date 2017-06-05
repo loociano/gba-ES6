@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>gba-ES6</title>
+  <link href="https://fonts.googleapis.com/css?family=Ubuntu+Mono" rel="stylesheet"/>
+  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+  <link href="src/ui/css/stylesheet.css" rel="stylesheet"/>
+</head>
+<body>
+
+<table id="debugger">
+  <thead>
+    <tr id="menubar">
+      <td colspan="4">
+        <ul id="menu">
+          <li>File</li>
+          <li>About</li>
+        </ul>
+      </td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td id="program">
+        <ul>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A and r11,r12,0x80</li>
+          <li class="selected">0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+          <li>0800036C EA00000A b 0x38</li>
+        </ul>
+      </td>
+      <td id="cpu">
+        <ul>
+          <li>R0 &nbsp;&nbsp;12345678</li>
+          <li>R1 &nbsp;&nbsp;12345678</li>
+          <li class="selected">R2 &nbsp;&nbsp;12345678</li>
+          <li>R3 &nbsp;&nbsp;12345678</li>
+          <li>R4 &nbsp;&nbsp;12345678</li>
+          <li>R5 &nbsp;&nbsp;12345678</li>
+          <li>R6 &nbsp;&nbsp;12345678</li>
+          <li>R7 &nbsp;&nbsp;12345678</li>
+          <li>R8 &nbsp;&nbsp;12345678</li>
+          <li>R9 &nbsp;&nbsp;12345678</li>
+          <li>R10 &nbsp;12345678</li>
+          <li>R11 &nbsp;12345678</li>
+          <li>R12 &nbsp;12345678</li>
+          <li>R13 &nbsp;12345678</li>
+          <li>R14 &nbsp;12345678</li>
+          <li>R15 &nbsp;12345678</li>
+          <li>CPRS 12345678</li>
+          <li>SPRS 12345678</li>
+        </ul>
+      </td>
+      <td id="flags">
+        <ul>
+          <li><input type="checkbox" id="N"/> <label for="N">N</label></li>
+          <li><input type="checkbox" id="Z"/> <label for="Z">Z</label></li>
+          <li><input type="checkbox" id="C"/> <label for="C">C</label></li>
+          <li><input type="checkbox" id="V"/> <label for="V">V</label></li>
+          <li><input type="checkbox" id="I"/> <label for="I">I</label></li>
+          <li><input type="checkbox" id="F"/> <label for="F">F</label></li>
+          <li><input type="checkbox" id="T"/> <label for="T">T</label></li>
+          <li><input type="checkbox" id="Q"/> <label for="Q">Q</label></li>
+        </ul>
+      </td>
+      <td id="screen">
+        <canvas></canvas>
+      </td>
+    </tr>
+    <tr>
+      <td id="memory">
+        <ul>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+          <li>00000120 FE FF FF EA FE FF 12 FE FF FF EA FE FF 12</li>
+        </ul>
+      </td>
+      <td id="stack" colspan="2">
+        <ul>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li class="selected">03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+          <li>03007F00 12345678</li>
+        </ul>
+      </td>
+      <td id="controls">
+        <button><i class="fa fa-play" aria-hidden="true"></i> Run</button>
+        <button><i class="fa fa-arrow-right" aria-hidden="true"></i> Next</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>
