@@ -1,6 +1,8 @@
 export default class Model {
 
-  constructor() {
+  constructor(GBA) {
+    if (!GBA) throw new Error('MissingGBA');
+    this._gba = GBA;
     this._flags = {N: false, Z: false, C: false, V: false, I: false, F: false, T: false, Q: false};
   }
 
@@ -22,5 +24,12 @@ export default class Model {
    */
   getFlag(flag) {
     return this._flags[flag];
+  }
+
+  /**
+   * @return {Uint8Array} memory
+   */
+  getMemory() {
+    return this._gba.getMemory();
   }
 }

@@ -4,8 +4,9 @@ import Model from '../../src/ui/model';
 
 describe('Model', () => {
   let model;
+  const gbaMock = {};
   beforeEach( () => {
-    model = new Model();
+    model = new Model(gbaMock);
   });
   it('should read/write flags', () => {
     let called = false;

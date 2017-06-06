@@ -9,15 +9,17 @@ import Logger from './logger';
 export default class GBA {
 
   /**
+   * @param {ARM7TDMI} cpu
    * @param BIOS
    * @param ROM
    */
-  constructor(BIOS, ROM) {
+  constructor(cpu, BIOS, ROM) {
+    if (cpu === undefined) throw new Error('Missing CPU');
     if (BIOS === undefined) throw new Error('Missing BIOS');
     if (ROM === undefined) throw new Error('Missing ROM');
-    this._rom = ROM;
-    this._cpu = new ARM7TDMI(new MMU());
+    this._cpu = cpu;
     this._cpu.setBIOS(BIOS);
+    this._rom = ROM;
   }
 
   start(){
