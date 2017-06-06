@@ -53,6 +53,7 @@ ul {
 }
 #debugger li.selected:hover {
     color: black;
+    cursor: default;
 }
 #program li:hover, #cpu li:hover, #stack li:hover {
     background-color: #ccc;
