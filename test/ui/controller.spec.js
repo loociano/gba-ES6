@@ -7,10 +7,12 @@ describe('Controller', () => {
   beforeEach( () => {
     model = {
       called: false,
-      setFlag: function() { this.called = true; }
+      setFlag: function() { this.called = true; },
+      getMemory: function() {}
     };
     view = {
-      bind: function() {}
+      bind: function() {},
+      render: function() {}
     };
     controller = new Controller(model, view);
   });

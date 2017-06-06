@@ -5,6 +5,9 @@
 ul {
     list-style: none;
 }
+.center {
+    text-align: center;
+}
 #debugger {
     margin: 10px;
     width: auto;
@@ -13,6 +16,20 @@ ul {
 #debugger button {
     font-family: 'Ubuntu Mono', monospace;
     padding: 3px;
+}
+#debugger input {
+    font-family: 'Ubuntu Mono', monospace;
+    font-size: 16px;
+}
+#debugger textarea {
+    font-family: 'Ubuntu Mono', monospace;
+    padding: 3px;
+    resize: none;
+    font-size: 16px;
+    border: 0;
+}
+#debugger textarea:focus {
+    outline-width: 0;
 }
 #debugger ul {
     overflow-y: auto;
@@ -34,15 +51,19 @@ ul {
 }
 #program, #program ul, #cpu, #cpu ul {
     height: 304px;
+    vertical-align: top;
 }
 #stack, #stack ul {
     width: 160px;
 }
-#memory, #memory ul, #stack, #stack ul {
-    height: 177px;
+#memory, #memory textarea, #stack, #stack ul {
+    height: 260px;
 }
-#memory, #memory ul {
-    width: 420px;
+#memory, #memory textarea {
+    width: 470px;
+}
+.memory-page {
+    width: 75px;
 }
 #flags {
     vertical-align: top;

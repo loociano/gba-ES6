@@ -9,6 +9,7 @@ export default class Controller {
     this._view = view;
 
     this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value));
+    this._updateMemory();
   }
 
   /**
@@ -17,5 +18,9 @@ export default class Controller {
    */
   setFlag(flag, value) {
     this._model.setFlag(flag, value, null);
+  }
+
+  _updateMemory() {
+    this._view.render('memory', this._model.getMemory());
   }
 }
