@@ -26,7 +26,7 @@ export default class Utils {
    * @return {string} hex string
    */
   static toHex(number) {
-    return `0x${number.toString(16)}`;
+    return number.toString(16).replace(/^(.(..)*)$/, "0$1");
   }
 
   /**
@@ -36,9 +36,9 @@ export default class Utils {
   static to32hex(number) {
     const hex = number.toString(16);
     if (hex.length < 8){
-      return `0x${'0'.repeat(8 - hex.length)}${hex}`;
+      return `${'0'.repeat(8 - hex.length)}${hex}`;
     } else {
-      return `0x${hex}`;
+      return hex;
     }
   }
 
