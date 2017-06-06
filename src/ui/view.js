@@ -42,7 +42,7 @@ export default class View {
     if (!command) return;
     switch(command) {
       case 'memory':
-        this._renderMemory(args);
+        this._renderMemoryPage(args);
         break;
     }
   }
@@ -51,7 +51,7 @@ export default class View {
    * @param {Uint8Array} memory
    * @private
    */
-  _renderMemory(memory) {
+  _renderMemoryPage(memory) {
     const lines = [];
     for(let i = 0; i < 0x100; i += 0x10){
       const values = [];
