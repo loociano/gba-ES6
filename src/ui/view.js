@@ -1,4 +1,5 @@
 import Utils from '../utils';
+import Decoder from '../decoder';
 
 export default class View {
 
@@ -9,6 +10,7 @@ export default class View {
     if (typeof document !== 'object') throw new Error('MissingDocument');
     this._document = document;
     this.$memory = document.querySelector('#memory textarea');
+    this.$programUl = document.querySelector('#program ul');
   }
 
   /**
@@ -42,8 +44,21 @@ export default class View {
     if (!command) return;
     switch(command) {
       case 'memory':
-        this._renderMemoryPage(args);
-        break;
+        return this._renderMemoryPage(args);
+      case 'program':
+        return this._renderProgramPage(args);
+    }
+  }
+
+  /**
+   * @param {Array} memory
+   * @private
+   */
+  _renderProgramPage(memory) {
+    for(let i = 0; i < memory.length; i++) {
+      const $li = this._document.createElement('li');
+      $li.innerText = `${Utils.to32hex(i*4)} ${Utils.to32hex(memory[i])}  ${Decoder.decodeToString(i, memory[i])}`;
+      this.$programUl.appendChild($li);
     }
   }
 

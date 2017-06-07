@@ -94,8 +94,12 @@ export default class ARM7TDMI {
     if (this._decoded !== null) {
       const pc = this._decoded.splice(0, 1)[0];
       const op = this._decoded.splice(0, 1)[0];
-      Logger.instr(pc, op, this._decoded);
-      this._opcodes[op].apply(this, this._decoded);
+      if (this._opcodes[op]) {
+        Logger.instr(pc, op, this._decoded);
+        this._opcodes[op].apply(this, this._decoded);
+      } else {
+        Logger.info(`${op} unimplemented`);
+      }
     }
     return this;
   }

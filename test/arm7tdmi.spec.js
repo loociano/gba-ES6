@@ -113,7 +113,7 @@ describe('ARM7TDMI tests', () => {
     it('should fetch, decode and execute an branching instruction', () => {
       const pc = 0;
       cpu.setDecoded([0, '???']);
-      cpu.setFetched(4, 0); // nop
+      cpu.setFetched(4, 0xffffffff); // rubish
       cpu.setPC(pc + 8);
       cpu.writeWord(0x180000ea, 8); // b 0x70
       cpu.writeWord(0x00005ee3, 0x70); // cmp r14,#0
@@ -140,7 +140,10 @@ describe('ARM7TDMI tests', () => {
       const pc = 0;
       const offset = 0x0a000000; // 10
       const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + 8 + 8;
-      cpu.writeWord(0, 4);
+      cpu.writeWord(0xffffffff, 4); //rubish
+      cpu.writeWord(0xffffffff, 0x38); //rubish
+      cpu.writeWord(0xffffffff, 0x3c); //rubish
+      cpu.writeWord(0xffffffff, 0x40); //rubish
       cpu.writeWord(0x000000ea + offset, 8);
       cpu.boot();
 
@@ -150,18 +153,18 @@ describe('ARM7TDMI tests', () => {
       assert.equal(cpu.getPC(), pc + 12);
 
       cpu.cycle(); // decode
-      assert.deepEqual(cpu.getFetched(), [0x38, 0]); // fetch from 10*4 + 8 + 8
+      assert.deepEqual(cpu.getFetched(), [0x38, 0xffffffff]); // fetch from 10*4 + 8 + 8
       assert.deepEqual(cpu.getDecoded(), [8, 'b', 0x38]);
       assert.equal(cpu.getPC(), pc + 16);
 
       cpu.cycle(); // branch forward
       assert.equal(calcOffset, 0x38 /* 10*4 + pc + 8 */);
-      assert.deepEqual(cpu.getFetched(), [0x38+4, 0]);
+      assert.deepEqual(cpu.getFetched(), [0x38+4, 0xffffffff]);
       assert.deepEqual(cpu.getDecoded(), [0x38, '???']);
       assert.equal(cpu.getPC(), 0x38 + 8);
 
       cpu.cycle();
-      assert.deepEqual(cpu.getFetched(), [0x38+8, 0]);
+      assert.deepEqual(cpu.getFetched(), [0x38+8, 0xffffffff]);
       assert.deepEqual(cpu.getDecoded(), [0x38+4, '???']);
       assert.equal(cpu.getPC(), 0x38 + 12);
     });
@@ -171,24 +174,27 @@ describe('ARM7TDMI tests', () => {
       const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + pc+8 + 8;
       cpu.setPC(pc + 8);
       cpu.writeWord(0x000000ea + offset, 0x108);
+      cpu.writeWord(0xffffffff, 0xe8); //rubish
+      cpu.writeWord(0xffffffff, 0xec); //rubish
+      cpu.writeWord(0xffffffff, 0xf0); //rubish
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [0x108, 0xeafffff6]);
       assert.equal(cpu.getPC(), pc + 12);
 
       cpu.cycle();
-      assert.deepEqual(cpu.getFetched(), [0xe8, 0]); // fetch from -10*4 + 8 + 0x108 = 0xe8
+      assert.deepEqual(cpu.getFetched(), [0xe8, 0xffffffff]); // fetch from -10*4 + 8 + 0x108 = 0xe8
       assert.deepEqual(cpu.getDecoded(), [0x108, 'b', 0xe8]);
       assert.equal(cpu.getPC(), pc + 16);
 
       cpu.cycle(); // branch backwards
       assert.equal(calcOffset, 0xe8 /* -10*4 + 0x108 + 8 */);
-      assert.deepEqual(cpu.getFetched(), [0xe8+4, 0]);
+      assert.deepEqual(cpu.getFetched(), [0xe8+4, 0xffffffff]);
       assert.deepEqual(cpu.getDecoded(), [0xe8, '???']);
       assert.equal(cpu.getPC(), 0xe8 + 8);
 
       cpu.cycle();
-      assert.deepEqual(cpu.getFetched(), [0xe8+8, 0]);
+      assert.deepEqual(cpu.getFetched(), [0xe8+8, 0xffffffff]);
       assert.deepEqual(cpu.getDecoded(), [0xe8+4, '???']);
       assert.equal(cpu.getPC(), 0xe8 + 12);
     });
