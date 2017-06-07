@@ -1,6 +1,6 @@
-import Utils from './utils';
 import Logger from './logger';
 import * as c from './constants';
+import Decoder from './decoder';
 
 /**
  * ARM7TDMI chip.
@@ -14,7 +14,7 @@ export default class ARM7TDMI {
     this._mmu = MMU;
     this._r = { r0: 0, r1: 0, r2: 0, r3: 0, r12: 0, r14: 0, pc: 0, cpsr: 0};
     this._opcodes = {
-      'nop': this._nop,
+      '???': this._nop,
       'b': this._b,
       'cmp': this._cmp,
       'mov': this._mov,
@@ -82,28 +82,7 @@ export default class ARM7TDMI {
    */
   _decode() {
     if (this._fetched === null) return this;
-
-    if (this._fetched[1] === 0) {
-      this._decoded = [this._fetched[0], 'nop'];
-    } else {
-      switch (this._fetched[1] >>> 24 & 0xf) {
-        case 0xa: // Branch
-          this._decoded = this._decodeBranch(...this._fetched);
-          break;
-        case 0: // DataProc
-        case 1:
-        case 2:
-        case 3:
-          this._decoded = this._decodeDataProc(...this._fetched);
-          break;
-        case 4: // SingleDataTransfer
-        case 5:
-          this._decoded = this._decodeDataTransfer(...this._fetched);
-          break;
-        default:
-          throw new Error(`Unknown instruction: ${this._fetched[1].toString(16)}`);
-      }
-    }
+    this._decoded = Decoder.decode(...this._fetched);
     return this;
   }
 
@@ -121,75 +100,6 @@ export default class ARM7TDMI {
     return this;
   }
 
-  /**
-   * @param {number} pc
-   * @param {number} instr
-   * @return {Array}
-   * @private
-   */
-  _decodeBranch(pc, instr) {
-    const offset = instr & 0x00ffffff;
-    return [pc, 'b', pc + c.ARM_INSTR_LENGTH*2 + (Utils.toSigned(offset)*4)];
-  }
-
-  /**
-   * @param {number} pc
-   * @param {number} word
-   * @return {Array} instruction parameters
-   * @private
-   */
-  _decodeDataProc(pc, word) {
-    let op, Rd, Rn, Op2;
-    const opcode = word >>> 21 & 0xf;
-    switch (opcode){
-      case 9:
-        op = 'teq'; break;
-      case 0xa:
-        op = 'cmp'; break;
-      case 0xd:
-        op = 'mov'; break;
-      default:
-        throw new Error(`Unknown DataProc: ${Utils.toHex(opcode)}`);
-    }
-    const immediate = word >>> 25 & 1 === 1;
-    Rn = this._r[`r${word >>> 16 & 0xf}`];
-    Rd = `r${word >>> 12 & 0xf}`;
-    if (immediate) {
-      Op2 = Utils.ror(word & 0xff, (word >>> 8 & 0xf)*2);
-    } else {
-      throw new Error('TODO: Op2 is a register');
-    }
-    return [pc, op, Rd, Rn, Op2];
-  }
-
-  /**
-   * @param pc
-   * @param word
-   * @private
-   */
-  _decodeDataTransfer(pc, word) {
-    let Rn, Rd, offset, address;
-    let op = 'str';
-    const I = (word >>> 25 & 1) === 1;
-    const P = (word >>> 24 & 1) === 1;
-    const U = (word >>> 23 & 1) === 1;
-    if ((word >>> 20 & 1) === 1) op = 'ldr';
-    Rn = `r${word >>> 16 & 0xf}`;
-    Rd = `r${word >>> 12 & 0xf}`;
-    if (!I) {
-      offset = word & 0xfff;
-    } else {
-      throw new Error('Shifted register');
-    }
-    if (!U) offset = -offset;
-    if (P) {
-      address = this._r[Rn] + offset;
-    } else {
-      throw new Error('Post indexed');
-    }
-    return [pc, op, Rd, address];
-  }
-
   // Instructions
 
   _nop() {}
@@ -205,44 +115,50 @@ export default class ARM7TDMI {
   }
 
   /**
-   * @param {number} Rd (unused)
+   * @param {number} Rd
    * @param {number} value Rn
    * @param {number} Op2
    * @private
    */
-  _cmp(Rd, Rn, Op2) {
+  _cmp(Rd/*unused*/, Rn, Op2) {
     const diff = Rn - Op2;
     this._setZ(diff);
   }
 
   /**
-   * @param {string} Rd name
-   * @param {string} Rn (unused)
+   * @param {string} Rd
+   * @param {string} Rn
    * @param {number} Op2
    * @private
    */
-  _mov(Rd, Rn, Op2) {
+  _mov(Rd, Rn/*unused*/, Op2) {
     this._r[Rd] = Op2;
     this._setZ(Op2);
   }
 
   /**
    * @param {string} Rd
-   * @param {number} address
+   * @param {string} Rn
+   * @param {boolean} P pre-increment
+   * @param {number} offset
    * @private
    */
-  _ldr(Rd, address) {
-    this._r[Rd] = this._mmu.readWord(address);
+  _ldr(Rd, Rn, P, offset) {
+    if (P) {
+      this._r[Rd] = this._mmu.readWord(this._r[Rn] + offset);
+    } else {
+      //TODO
+    }
   }
 
   /**
    * @param {string} Rd
-   * @param {string} Rn (unused)
+   * @param {string} Rn
    * @param {string} Op2
    * @private
    */
-  _teq(Rd, Rn, Op2) {
-    const xor = (Rn ^ Op2) >>> 0;
+  _teq(Rd/*unused*/, Rn, Op2) {
+    const xor = (this._r[Rn] ^ Op2) >>> 0;
     this._setZ(xor);
   }
 

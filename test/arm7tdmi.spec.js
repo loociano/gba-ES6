@@ -86,7 +86,7 @@ describe('ARM7TDMI tests', () => {
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [8, 0xe3530000]);
-      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 'r0', 2, 0]);
+      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 'r0', 'r2', 0]);
       assert.equal(cpu.getPC(), pc+12);
     });
     it('should execute instructions in a pipeline', () => {
@@ -103,16 +103,16 @@ describe('ARM7TDMI tests', () => {
       cpu.cycle();
       assert.equal(cpu.getPC(), pc + 12);
       assert.deepEqual(cpu.getFetched(), [8, 0xe3530000]);
-      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 'r0', 1, 0]);
+      assert.deepEqual(cpu.getDecoded(), [4, 'cmp', 'r0', 'r1', 0]);
 
       cpu.cycle();
       assert.equal(cpu.getPC(), pc + 16);
       assert.deepEqual(cpu.getFetched(), [12, 0xe3540000]);
-      assert.deepEqual(cpu.getDecoded(), [8, 'cmp', 'r0', 3, 0]);
+      assert.deepEqual(cpu.getDecoded(), [8, 'cmp', 'r0', 'r3', 0]);
     });
     it('should fetch, decode and execute an branching instruction', () => {
       const pc = 0;
-      cpu.setDecoded([0, 'nop']);
+      cpu.setDecoded([0, '???']);
       cpu.setFetched(4, 0); // nop
       cpu.setPC(pc + 8);
       cpu.writeWord(0x180000ea, 8); // b 0x70
@@ -121,7 +121,7 @@ describe('ARM7TDMI tests', () => {
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [8, 0xea000018]);
-      assert.deepEqual(cpu.getDecoded(), [4, 'nop']);
+      assert.deepEqual(cpu.getDecoded(), [4, '???']);
       assert.equal(cpu.getPC(), pc + 12);
 
       cpu.cycle();
@@ -131,7 +131,7 @@ describe('ARM7TDMI tests', () => {
 
       cpu.cycle(); // execute branch
       assert.deepEqual(cpu.getFetched(), [0x74, 0xffffffff]);
-      assert.deepEqual(cpu.getDecoded(), [0x70, 'cmp', 'r0', 0, 0]);
+      assert.deepEqual(cpu.getDecoded(), [0x70, 'cmp', 'r0', 'r14', 0]);
       assert.equal(cpu.getPC(), 0x70 + 8);
     });
   });
@@ -146,7 +146,7 @@ describe('ARM7TDMI tests', () => {
 
       cpu.cycle(); // fetch
       assert.deepEqual(cpu.getFetched(), [8, 0xea00000a]);
-      assert.deepEqual(cpu.getDecoded(), [4, 'nop']);
+      assert.deepEqual(cpu.getDecoded(), [4, '???']);
       assert.equal(cpu.getPC(), pc + 12);
 
       cpu.cycle(); // decode
@@ -157,12 +157,12 @@ describe('ARM7TDMI tests', () => {
       cpu.cycle(); // branch forward
       assert.equal(calcOffset, 0x38 /* 10*4 + pc + 8 */);
       assert.deepEqual(cpu.getFetched(), [0x38+4, 0]);
-      assert.deepEqual(cpu.getDecoded(), [0x38, 'nop']);
+      assert.deepEqual(cpu.getDecoded(), [0x38, '???']);
       assert.equal(cpu.getPC(), 0x38 + 8);
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [0x38+8, 0]);
-      assert.deepEqual(cpu.getDecoded(), [0x38+4, 'nop']);
+      assert.deepEqual(cpu.getDecoded(), [0x38+4, '???']);
       assert.equal(cpu.getPC(), 0x38 + 12);
     });
     it('should branch backwards', () => {
@@ -184,12 +184,12 @@ describe('ARM7TDMI tests', () => {
       cpu.cycle(); // branch backwards
       assert.equal(calcOffset, 0xe8 /* -10*4 + 0x108 + 8 */);
       assert.deepEqual(cpu.getFetched(), [0xe8+4, 0]);
-      assert.deepEqual(cpu.getDecoded(), [0xe8, 'nop']);
+      assert.deepEqual(cpu.getDecoded(), [0xe8, '???']);
       assert.equal(cpu.getPC(), 0xe8 + 8);
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [0xe8+8, 0]);
-      assert.deepEqual(cpu.getDecoded(), [0xe8+4, 'nop']);
+      assert.deepEqual(cpu.getDecoded(), [0xe8+4, '???']);
       assert.equal(cpu.getPC(), 0xe8 + 12);
     });
     it('should branch to the same address (stuck)', () => {
@@ -245,18 +245,18 @@ describe('ARM7TDMI tests', () => {
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [pc+4, 0x03a0e000]);
-      assert.deepEqual(cpu.getDecoded(), [pc, 'mov', 'r14', 0, 4]);
+      assert.deepEqual(cpu.getDecoded(), [pc, 'mov', 'r14', 'r0', 4]);
       assert.equal(cpu.getPC(), pc + 8);
 
       cpu.cycle();
       assert.deepEqual(cpu.getFetched(), [pc+8, 0x03a0c301]);
-      assert.deepEqual(cpu.getDecoded(), [pc+4, 'mov', 'r14', 0, 0]);
+      assert.deepEqual(cpu.getDecoded(), [pc+4, 'mov', 'r14', 'r0', 0]);
       assert.equal(cpu.getR14(), 4);
       assert.equal(cpu.getNZCVQ(), 0b00000);
       assert.equal(cpu.getPC(), pc + 12);
 
       cpu.cycle();
-      assert.deepEqual(cpu.getDecoded(), [pc+8, 'mov', 'r12', 0, 0x4000000]);
+      assert.deepEqual(cpu.getDecoded(), [pc+8, 'mov', 'r12', 'r0', 0x4000000]);
       assert.equal(cpu.getR14(), 0);
       assert.equal(cpu.getNZCVQ(), 0b01000);
 
@@ -279,7 +279,7 @@ describe('ARM7TDMI tests', () => {
       assert.deepEqual(cpu.getFetched(), [pc, 0xe5910300]);
 
       cpu.cycle();
-      assert.deepEqual(cpu.getDecoded(), [pc, 'ldr', 'r0'/*dest*/, 0x08000300]);
+      assert.deepEqual(cpu.getDecoded(), [pc, 'ldr', 'r0'/*dest*/, 'r1', true, 0x300]);
 
       cpu.cycle();
       assert.equal(cpu.getR0(), 0x78563412);
@@ -295,7 +295,7 @@ describe('ARM7TDMI tests', () => {
       assert.deepEqual(cpu.getFetched(), [pc, 0xe3300001]);
 
       cpu.cycle();
-      assert.deepEqual(cpu.getDecoded(), [pc, 'teq', 'r0', 1, 1]);
+      assert.deepEqual(cpu.getDecoded(), [pc, 'teq', 'r0', 'r0', 1]);
 
       cpu.cycle(); // 1 XOR 1 = 0
       assert.equal(cpu.getR0(), 1, 'register unchanged');

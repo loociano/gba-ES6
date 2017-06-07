@@ -4,18 +4,18 @@ import Logger from './logger';
 
 export default class Decoder {
 
-  static decode(word, pc) {
+  static decode(pc, word) {
     switch (word >>> 24 & 0xf) {
       case 0xa: // Branch
-        return Decoder._decodeBranch(word, pc);
+        return Decoder._decodeBranch(pc, word);
       case 0: // DataProc
       case 1:
       case 2:
       case 3:
-        return Decoder._decodeDataProc(word, pc);
+        return Decoder._decodeDataProc(pc, word);
       case 4: // SingleDataTransfer
       case 5:
-        return Decoder._decodeDataTransfer(word, pc);
+        return Decoder._decodeDataTransfer(pc, word);
       default:
         return Decoder._decodeUnknown(pc);
     }
@@ -26,23 +26,23 @@ export default class Decoder {
   }
 
   /**
-   * @param {number} word
    * @param {number} pc
+   * @param {number} word
    * @return {Array}
    * @private
    */
-  static _decodeBranch(word, pc) {
+  static _decodeBranch(pc, word) {
     const offset = word & 0x00ffffff;
     return [pc, 'b', pc + c.ARM_INSTR_LENGTH*2 + (Utils.toSigned(offset)*4)];
   }
 
   /**
-   * @param {number} word
    * @param {number} pc
+   * @param {number} word
    * @return {Array} instruction parameters
    * @private
    */
-  static _decodeDataProc(word, pc) {
+  static _decodeDataProc(pc, word) {
     let op, Rd, Rn, Op2;
     const opcode = word >>> 21 & 0xf;
     switch (opcode){
@@ -68,13 +68,13 @@ export default class Decoder {
   }
 
   /**
-   * @param {number} word
    * @param {number} pc
+   * @param {number} word
    * @return {Array}
    * @private
    */
-  static _decodeDataTransfer(word, pc) {
-    let Rn, Rd, offset, address;
+  static _decodeDataTransfer(pc, word) {
+    let Rn, Rd, offset;
     let op = 'str';
     const I = (word >>> 25 & 1) === 1;
     const P = (word >>> 24 & 1) === 1;
