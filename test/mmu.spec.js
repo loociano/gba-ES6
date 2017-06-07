@@ -30,6 +30,7 @@ describe('MMU', () => {
     mmu.writeArray(array, 0);
     assert.equal(mmu.readWord(0), 0x78563412);
     assert.equal(mmu.readWord(4), 0xefcdab90);
+    assert.deepEqual(mmu.readArray(0/*offset*/, 2/*size*/), [0x78563412, 0xefcdab90]);
   });
   it('should prohibit reads outside memory', () => {
     assert.throws( () => mmu.readByte(0x10000000), Error);
@@ -48,5 +49,5 @@ describe('MMU', () => {
     assert.throws( () => mmu.writeByte(-1, 0), Error);
     assert.throws( () => mmu.writeWord(0x100000000, 0), Error);
     assert.throws( () => mmu.writeWord(-1, 0), Error);
-  })
+  });
 });

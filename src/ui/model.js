@@ -32,4 +32,8 @@ export default class Model {
   getMemory() {
     return this._gba.getMemory();
   }
+
+  getProgram() {
+    return this._gba.getProgram();
+  }
 }

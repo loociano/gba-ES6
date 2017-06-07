@@ -69,4 +69,17 @@ export default class MMU {
   writeArray(array, offset) {
     this._memory.set(array, offset);
   }
+
+  /**
+   * @param offset
+   * @param length
+   * @return {Array}
+   */
+  readArray(offset, length) {
+    const result = [];
+    for(let i = 0; i < length; i++) {
+      result.push(this.readWord(offset+i*c.ARM_INSTR_LENGTH));
+    }
+    return result;
+  }
 }

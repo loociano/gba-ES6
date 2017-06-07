@@ -8,7 +8,8 @@ describe('Controller', () => {
     model = {
       called: false,
       setFlag: function() { this.called = true; },
-      getMemory: function() {}
+      getMemory: function() {},
+      getProgram: function() {}
     };
     view = {
       bind: function() {},
