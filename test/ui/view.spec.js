@@ -44,18 +44,20 @@ describe('View', () => {
   });
   describe('Program view', () => {
     it('should render program instructions', () => {
-      const program = [0xea000018, 0xe35e0000, 0xe3a0e004, 0xe3a0c301, 0xe59cc300, 0xffffffff];
+      const program = [0xea000018, 0xea000004, 0xea00004c, 0xe35e0000, 0xe3a0e004, 0xe3a0c301, 0xe59cc300, 0xffffffff];
       const $program = dom.window.document.querySelector('#program ul');
 
       view.render('program', program);
       const $nodes = $program.children;
-      assert.equal($nodes.length, 6);
+      assert.equal($nodes.length, 8);
       assert.equal($nodes[0].innerText, '00000000 ea000018  b 0x68');
-      assert.equal($nodes[1].innerText, '00000004 e35e0000  cmp r14,0x00');
-      assert.equal($nodes[2].innerText, '00000008 e3a0e004  mov r14,0x04');
-      assert.equal($nodes[3].innerText, '0000000c e3a0c301  mov r12,0x04000000');
-      assert.equal($nodes[4].innerText, '00000010 e59cc300  ldr r12,[r12,0x0300]');
-      assert.equal($nodes[5].innerText, '00000014 ffffffff  ???');
+      assert.equal($nodes[1].innerText, '00000004 ea000004  b 0x1c');
+      assert.equal($nodes[2].innerText, '00000008 ea00004c  b 0x0140');
+      assert.equal($nodes[3].innerText, '0000000c e35e0000  cmp r14,0x00');
+      assert.equal($nodes[4].innerText, '00000010 e3a0e004  mov r14,0x04');
+      assert.equal($nodes[5].innerText, '00000014 e3a0c301  mov r12,0x04000000');
+      assert.equal($nodes[6].innerText, '00000018 e59cc300  ldr r12,[r12,0x0300]');
+      assert.equal($nodes[7].innerText, '0000001c ffffffff  ???');
     });
   });
 });

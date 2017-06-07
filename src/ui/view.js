@@ -57,7 +57,8 @@ export default class View {
   _renderProgramPage(memory) {
     for(let i = 0; i < memory.length; i++) {
       const $li = this._document.createElement('li');
-      $li.innerText = `${Utils.to32hex(i*4)} ${Utils.to32hex(memory[i])}  ${Decoder.decodeToString(i, memory[i])}`;
+      const pc = i*4;
+      $li.innerText = `${Utils.to32hex(pc)} ${Utils.to32hex(memory[i])}  ${Decoder.decodeToString(pc, memory[i])}`;
       this.$programUl.appendChild($li);
     }
   }
