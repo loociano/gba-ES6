@@ -26,6 +26,11 @@ describe('Decoder', () => {
     assert.deepEqual(Decoder.decode(pc, 0xe5910300), [pc, 'ldr', 'r0', 'r1', true/*Pre?*/, 0x300]);
     assert.equal(Decoder.decodeToString(pc, 0xe5910300), 'ldr r0,[r1,0x0300]');
   });
+  it('should decode AND', () => {
+    const pc = 0;
+    assert.deepEqual(Decoder.decode(pc, 0), [pc, 'and'/*FIXME:andeq*/, 'r0', 'r0', 'r0']);
+    assert.equal(Decoder.decodeToString(pc, 0), 'and r0,r0,r0');
+  });
   it('should decode XOR', () => {
     const pc = 0;
     assert.deepEqual(Decoder.decode(pc, 0xe3300001), [pc, 'teq', 'r0', 'r0', 1]);

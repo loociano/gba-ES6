@@ -5,12 +5,17 @@ import View from '../../src/ui/view';
 
 describe('View', () => {
   let dom, view;
+  let $program, $memory, $flag;
   beforeEach( () => {
     dom = new JSDOM(`
       <div id="program"><ul></ul></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
     `);
+    $program = dom.window.document.querySelector('#program ul');
+    $memory = dom.window.document.querySelector('#memory textarea');
+    $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
+
     view = new View(dom.window.document);
   });
   it('should construct', () => {
@@ -22,7 +27,6 @@ describe('View', () => {
       const handler = function handler() {
         called = true;
       };
-      const $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
       view.bind('setFlag', handler);
       $flag.click();
       assert.isTrue(called);
@@ -33,7 +37,6 @@ describe('View', () => {
       const memory = new Uint8Array(0x100);
       memory[0] = 0x11;
       memory[0xff] = 0xff;
-      const $memory = dom.window.document.querySelector('#memory textarea');
 
       view.render('memory', memory);
       const lines = $memory.textContent.split('\n');
@@ -43,9 +46,17 @@ describe('View', () => {
     });
   });
   describe('Program view', () => {
+    it('should render empty program', () => {
+      const empty = new Uint8Array(100);
+
+      view.render('program', empty);
+      const $nodes = $program.children;
+      assert.equal($nodes.length, 100);
+      assert.equal($nodes[0].innerText,  '00000000 00000000  and r0,r0,r0');
+      assert.equal($nodes[99].innerText, '0000018c 00000000  and r0,r0,r0');
+    });
     it('should render program instructions', () => {
       const program = [0xea000018, 0xea000004, 0xea00004c, 0xe35e0000, 0xe3a0e004, 0xe3a0c301, 0xe59cc300, 0xffffffff];
-      const $program = dom.window.document.querySelector('#program ul');
 
       view.render('program', program);
       const $nodes = $program.children;

@@ -78,21 +78,34 @@ export default class Decoder {
     if (immediate) {
       Op2 = Utils.ror(word & 0xff, (word >>> 8 & 0xf)*2);
     } else {
-      Logger.error('TODO: Op2 is a register');
+      const R = word >>> 4 & 1 === 1;
+      const Rm = `r${word & 0xf}`;
+      if (!R) {
+        const Is = word >>> 7 & 0x1f;
+        if (Is === 0){
+          Op2 = Rm;
+        } else {
+          //TODO
+        }
+      } else {
+        //TODO
+      }
     }
     op = c.ALU_OPCODES[opcode];
     if (toString) {
+      let prefix = '';
+      if (typeof Op2 === 'number') prefix = '0x';
       switch(opcode) {
         case 8:
         case 9:
         case 0xa:
         case 0xb:
-          return `${op} ${Rn},0x${Utils.toHex(Op2)}`;
+          return `${op} ${Rn},${prefix}${Utils.toHex(Op2)}`;
         case 0xd:
         case 0xf:
-          return `${op} ${Rd},0x${Utils.toHex(Op2)}`;
+          return `${op} ${Rd},${prefix}${Utils.toHex(Op2)}`;
         default:
-          return `${op} ${Rd},${Rn},0x${Utils.toHex(Op2)}`;
+          return `${op} ${Rd},${Rn},${prefix}${Utils.toHex(Op2)}`;
       }
     }
     return [pc, op, Rd, Rn, Op2];
