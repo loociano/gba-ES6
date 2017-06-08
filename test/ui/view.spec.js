@@ -5,21 +5,57 @@ import View from '../../src/ui/view';
 
 describe('View', () => {
   let dom, view;
-  let $program, $memory, $flag;
+  let $load, $program, $memory, $flag;
+  const mockReader = {
+    /**
+     * @param {Array} file
+     * @return {ArrayBuffer}
+     */
+    readAsArrayBuffer: function(file) {
+      const evtMock = {
+        target: {
+          result: file[1] // ArrayBuffer
+        }
+      };
+      this.onload(evtMock);
+    },
+    onload: function(evt) {}
+  };
   beforeEach( () => {
     dom = new JSDOM(`
+      <input id="load" type="file"/>
       <div id="program"><ul></ul></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
     `);
+    $load = dom.window.document.getElementById('load');
     $program = dom.window.document.querySelector('#program ul');
     $memory = dom.window.document.querySelector('#memory textarea');
     $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
 
-    view = new View(dom.window.document);
+    view = new View(dom.window.document, mockReader);
   });
   it('should construct', () => {
     assert.throws( () => new View(undefined), Error);
+  });
+  describe('Menu', () => {
+    it('should bind load', () => {
+      let called = false;
+      const handler = () => { called = true; };
+      const evt = dom.window.document.createEvent('HTMLEvents');
+      evt.initEvent('change', false, true);
+      view.load = (evt, handler) => handler();
+
+      view.bind('load', handler);
+      $load.dispatchEvent(evt);
+      assert.isTrue(called);
+    });
+    it('should load a file', () => {
+      let called = false;
+      const handler = () => { called = true; };
+      const mockEvt = { target: { files: ['foo', new ArrayBuffer(8)] }};
+      view.load(mockEvt, handler);
+    });
   });
   describe('CPU view',  () => {
     it('should bind flag', () => {
@@ -56,6 +92,7 @@ describe('View', () => {
       assert.equal($nodes[99].innerText, '0000018c 00000000  and r0,r0,r0');
     });
     it('should render program instructions', () => {
+      const empty = new Uint8Array(8);
       const program = [0xea000018, 0xea000004, 0xea00004c, 0xe35e0000, 0xe3a0e004, 0xe3a0c301, 0xe59cc300, 0xffffffff];
 
       view.render('program', program);
@@ -69,6 +106,9 @@ describe('View', () => {
       assert.equal($nodes[5].innerText, '00000014 e3a0c301  mov r12,0x04000000');
       assert.equal($nodes[6].innerText, '00000018 e59cc300  ldr r12,[r12,0x0300]');
       assert.equal($nodes[7].innerText, '0000001c ffffffff  ???');
+
+      view.render('program', empty);
+      assert.equal($program.children.length, 8, 'Should override the previous program');
     });
   });
 });

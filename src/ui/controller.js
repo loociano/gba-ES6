@@ -9,8 +9,19 @@ export default class Controller {
     this._view = view;
 
     this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value));
+    this._view.bind('load', (bios) => this.load(bios));
     this._updateMemory();
     this._updateProgram();
+  }
+
+  /**
+   * @param {Uint8Array} bios
+   */
+  load(bios) {
+    this._model.setBIOS(bios, () => {
+      this._updateMemory();
+      this._updateProgram();
+    });
   }
 
   /**

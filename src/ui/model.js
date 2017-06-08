@@ -1,9 +1,23 @@
 export default class Model {
 
+  /**
+   * @param {GBA} GBA
+   */
   constructor(GBA) {
     if (!GBA) throw new Error('MissingGBA');
     this._gba = GBA;
     this._flags = {N: false, Z: false, C: false, V: false, I: false, F: false, T: false, Q: false};
+  }
+
+  /**
+   * @param {Uint8Array} bios
+   * @param {function} callback
+   */
+  setBIOS(bios, callback) {
+    this._gba._cpu.setBIOS(bios);
+    if (typeof callback === 'function') {
+      callback.call(this);
+    }
   }
 
   /**

@@ -5,10 +5,13 @@ export default class View {
 
   /**
    * @param {HTMLDocument} document
+   * @param {FileReader} reader
    */
-  constructor(document){
+  constructor(document, reader){
     if (typeof document !== 'object') throw new Error('MissingDocument');
+    if (typeof reader !== 'object') throw new Error('MissingReader');
     this._document = document;
+    this._reader = reader;
     this.$memory = document.querySelector('#memory textarea');
     this.$programUl = document.querySelector('#program ul');
   }
@@ -23,8 +26,8 @@ export default class View {
   }
 
   /**
-   * @param event
-   * @param handler
+   * @param {string} event
+   * @param {Function} handler
    * @public
    */
   bind(event, handler) {
@@ -34,6 +37,20 @@ export default class View {
         ($flag) => View.on($flag, 'click', () => handler($flag.id, $flag.checked))
       );
     }
+    if (event === 'load') {
+      const $load = this._document.getElementById('load');
+      View.on($load, 'change', (evt) => this.load(evt, handler));
+    }
+  }
+
+  /**
+   * @param {Event} evt
+   * @param {Function} handler
+   */
+  load(evt, handler) {
+    const file = evt.target.files[0]; // FileList object
+    this._reader.onload = (evt) => handler(new Uint8Array(evt.target.result));
+    if (file) this._reader.readAsArrayBuffer(file);
   }
 
   /**
@@ -55,11 +72,15 @@ export default class View {
    * @private
    */
   _renderProgramPage(memory) {
+    const lines = this.$programUl.childNodes;
     for(let i = 0; i < memory.length; i++) {
-      const $li = this._document.createElement('li');
+      let $li = lines[i];
+      if (!$li) {
+        $li = this._document.createElement('li');
+        this.$programUl.appendChild($li);
+      }
       const pc = i*4;
       $li.innerText = `${Utils.to32hex(pc)} ${Utils.to32hex(memory[i])}  ${Decoder.decodeToString(pc, memory[i])}`;
-      this.$programUl.appendChild($li);
     }
   }
 

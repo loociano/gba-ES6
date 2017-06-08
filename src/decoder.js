@@ -70,7 +70,7 @@ export default class Decoder {
    * @private
    */
   static _decodeDataProc(pc, word, toString=false) {
-    let op, Rd, Rn, Op2;
+    let op, Rd, Rn, Op2 = 0;
     const immediate = word >>> 25 & 1 === 1;
     const opcode = word >>> 21 & 0xf;
     Rn = `r${word >>> 16 & 0xf}`;

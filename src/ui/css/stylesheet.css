@@ -21,6 +21,9 @@ ul {
     font-family: 'Ubuntu Mono', monospace;
     font-size: 16px;
 }
+#debugger input[type="file"] {
+    font-size: 12px;
+}
 #debugger textarea {
     font-family: 'Ubuntu Mono', monospace;
     padding: 3px;
