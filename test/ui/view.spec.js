@@ -2,10 +2,11 @@ import {describe, it, beforeEach} from 'mocha';
 import {assert} from 'chai';
 import {JSDOM} from 'jsdom';
 import View from '../../src/ui/view';
+import Utils from '../../src/utils';
 
 describe('View', () => {
   let dom, view;
-  let $load, $program, $memory, $flag;
+  let $load, $program, $memory, $registers, $flag, $nextButton;
   const mockReader = {
     /**
      * @param {Array} file
@@ -24,14 +25,17 @@ describe('View', () => {
   beforeEach( () => {
     dom = new JSDOM(`
       <input id="load" type="file"/>
+      <div id="cpu"><ul></ul></div>
       <div id="program"><ul></ul></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
+      <div id="controls"><button name="next">next</button></div>
     `);
     $load = dom.window.document.getElementById('load');
     $program = dom.window.document.querySelector('#program ul');
     $memory = dom.window.document.querySelector('#memory textarea');
     $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
+    $nextButton = dom.window.document.querySelector('#controls button[name="next"]');
 
     view = new View(dom.window.document, mockReader);
   });
@@ -55,6 +59,18 @@ describe('View', () => {
       const handler = () => { called = true; };
       const mockEvt = { target: { files: ['foo', new ArrayBuffer(8)] }};
       view.load(mockEvt, handler);
+      assert.isTrue(called);
+    });
+  });
+  describe('Execution view', () => {
+    it('should bind Next button', () => {
+      let called = false;
+      const handler = function handler() {
+        called = true;
+      };
+      view.bind('executeNext', handler);
+      $nextButton.click();
+      assert.isTrue(called);
     });
   });
   describe('CPU view',  () => {
@@ -66,6 +82,31 @@ describe('View', () => {
       view.bind('setFlag', handler);
       $flag.click();
       assert.isTrue(called);
+    });
+    it('should render registers', () => {
+      const registers = { r0: 0, r1: 1, r2: 2, r3: 3, r4: 4, r5: 5, r6: 6, r7: 7, r8: 8, r9: 9, r10: 10, r11: 11, r12: 12, r13: 13, r14: 14, pc: 15, cpsr: 16, sprs: 17};
+
+      view.render('cpu', registers);
+      $registers = dom.window.document.querySelectorAll('#cpu ul li');
+      assert.equal($registers.length, 18);
+      assert.equal($registers[0].innerHTML, 'r0 &nbsp;&nbsp;00000000');
+      assert.equal($registers[1].innerHTML, 'r1 &nbsp;&nbsp;00000001');
+      assert.equal($registers[2].innerHTML, 'r2 &nbsp;&nbsp;00000002');
+      assert.equal($registers[3].innerHTML, 'r3 &nbsp;&nbsp;00000003');
+      assert.equal($registers[4].innerHTML, 'r4 &nbsp;&nbsp;00000004');
+      assert.equal($registers[5].innerHTML, 'r5 &nbsp;&nbsp;00000005');
+      assert.equal($registers[6].innerHTML, 'r6 &nbsp;&nbsp;00000006');
+      assert.equal($registers[7].innerHTML, 'r7 &nbsp;&nbsp;00000007');
+      assert.equal($registers[8].innerHTML, 'r8 &nbsp;&nbsp;00000008');
+      assert.equal($registers[9].innerHTML, 'r9 &nbsp;&nbsp;00000009');
+      assert.equal($registers[10].innerHTML, 'r10 &nbsp;0000000a');
+      assert.equal($registers[11].innerHTML, 'r11 &nbsp;0000000b');
+      assert.equal($registers[12].innerHTML, 'r12 &nbsp;0000000c');
+      assert.equal($registers[13].innerHTML, 'r13 &nbsp;0000000d');
+      assert.equal($registers[14].innerHTML, 'r14 &nbsp;0000000e');
+      assert.equal($registers[15].innerHTML, 'pc &nbsp;&nbsp;0000000f');
+      assert.equal($registers[16].innerHTML, 'cpsr 00000010');
+      assert.equal($registers[17].innerHTML, 'sprs 00000011');
     });
   });
   describe('Memory view', () => {
@@ -109,6 +150,18 @@ describe('View', () => {
 
       view.render('program', empty);
       assert.equal($program.children.length, 8, 'Should override the previous program');
+    });
+    it('should highlight current instruction', () => {
+      view.render('program', new Uint8Array(100));
+      const $instrs = $program.children;
+
+      view.render('currentInstr', 0);
+      assert.equal($instrs[0].className, 'selected');
+      assert.equal($instrs[1].className, '');
+
+      view.render('currentInstr', 4);
+      assert.equal($instrs[0].className, '');
+      assert.equal($instrs[1].className, 'selected');
     });
   });
 });

@@ -9,7 +9,8 @@ describe('Controller', () => {
       called: false,
       setFlag: function() { this.called = true; },
       getMemory: function() {},
-      getProgram: function() {}
+      getProgram: function() {},
+      getRegisters: function() {}
     };
     view = {
       bind: function() {},

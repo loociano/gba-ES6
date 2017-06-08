@@ -10,6 +10,28 @@ export default class Model {
   }
 
   /**
+   * @param {function} callback
+   */
+  boot(callback) {
+    this._gba._cpu.boot();
+    if (typeof callback === 'function') {
+      const instrAddress = this._gba._cpu._decoded[0];
+      callback.call(this, instrAddress, this._gba._cpu._r);
+    }
+  }
+
+  /**
+   * @param {function} callback
+   */
+  executeNext(callback) {
+    this._gba._cpu.cycle();
+    if (typeof callback === 'function') {
+      const instrAddress = this._gba._cpu._decoded[0];
+      callback.call(this, instrAddress, this._gba._cpu._r);
+    }
+  }
+
+  /**
    * @param {Uint8Array} bios
    * @param {function} callback
    */
@@ -49,5 +71,12 @@ export default class Model {
 
   getProgram() {
     return this._gba.getProgram();
+  }
+
+  /**
+   * @return {Object} registers
+   */
+  getRegisters() {
+    return this._gba._cpu._r;
   }
 }

@@ -10,17 +10,29 @@ export default class Controller {
 
     this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value));
     this._view.bind('load', (bios) => this.load(bios));
+    this._view.bind('executeNext', () => this.executeNext());
     this._updateMemory();
     this._updateProgram();
+    this._updateCpu();
   }
 
   /**
    * @param {Uint8Array} bios
    */
   load(bios) {
-    this._model.setBIOS(bios, () => {
-      this._updateMemory();
-      this._updateProgram();
+    this._model.setBIOS(bios);
+    this._updateMemory();
+    this._updateProgram();
+    this._model.boot((current, registers) => {
+      this._view.render('currentInstr', current);
+      this._view.render('cpu', registers);
+    });
+  }
+
+  executeNext() {
+    this._model.executeNext((current, registers) => {
+      this._view.render('currentInstr', current);
+      this._view.render('cpu', registers);
     });
   }
 
@@ -38,5 +50,9 @@ export default class Controller {
 
   _updateProgram() {
     this._view.render('program', this._model.getProgram());
+  }
+
+  _updateCpu() {
+    this._view.render('cpu', this._model.getRegisters());
   }
 }
