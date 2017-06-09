@@ -18,40 +18,12 @@ export default class View {
     this.$list = this._document.getElementById('infinite-list');
     this.$programUl = this._document.querySelector('#program ul');
     this.$cpu = this._document.querySelector('#cpu ul');
-    window.$scrollView = this._document.querySelector('#infinite-list #scroll-view');
-
+    this._window.$scrollView = this._document.querySelector('#infinite-list #scroll-view');
     this._initDOM();
-
     this.$programInstrs = this._document.querySelectorAll('#infinite-list li');
-    window.previous = null;
-    window.instrHeight = this.$programInstrs[0].getBoundingClientRect().height;
-
-    window.onScrollUpdateInstrs = function(handler) {
-      let current = window.$scrollView.scrollTop;
-      if (window.previous === current) {
-        window.requestAnimationFrame(function() {
-          window.onScrollUpdateInstrs(handler);
-        });
-        return;
-      }
-      window.previous = current;
-      let firstInstr = Math.floor(current/15);
-      if (current % 120 !== 0) {
-        const remain = current % 4;
-        firstInstr = (remain >= 2) ? Math.ceil(current/4)*4 : Math.floor(current/4)*4;
-      }
-      handler(firstInstr, firstInstr + c.INSTR_ON_UI);
-      window.requestAnimationFrame(function() {
-        window.onScrollUpdateInstrs(handler);
-      });
-    };
-  }
-
-  _initDOM() {
-    for(let i = 0; i < c.INSTR_ON_UI; i++) {
-      const $li = this._document.createElement('li');
-      this.$programUl.appendChild($li);
-    }
+    this._window.previous = null;
+    this._window.instrHeight = this.$programInstrs[0].getBoundingClientRect().height;
+    this._window.onScrollUpdateInstrs = this._onScrollUpdateInstrs; // attach
   }
 
   /**
@@ -61,6 +33,10 @@ export default class View {
    */
   static on(target, type, callback) {
     target.addEventListener(type, callback);
+  }
+
+  handleScrollInstrs(handler) {
+    this._window.onScrollUpdateInstrs(handler);
   }
 
   /**
@@ -93,7 +69,7 @@ export default class View {
   /**
    * @param {Event} evt
    */
-  onMouseWheel(evt) {
+  static onMouseWheel(evt) {
     let delta = evt.wheelDeltaY;
     if (Math.abs(delta) < window.instrHeight) {
       delta = window.instrHeight * (delta > 0 ? 1 : -1);
@@ -127,6 +103,37 @@ export default class View {
       case 'program':
         return this._renderProgramPage(args.instrs, args.offset);
     }
+  }
+
+  /**
+   * @private
+   */
+  _initDOM() {
+    for(let i = 0; i < c.INSTR_ON_UI; i++) {
+      const $li = this._document.createElement('li');
+      this.$programUl.appendChild($li);
+    }
+  }
+
+  /**
+   * This function will be called by the {window} object, 'this' is not available.
+   * @param {function} handler
+   * @private
+   */
+  _onScrollUpdateInstrs(handler) {
+    let current = window.$scrollView.scrollTop;
+    if (window.previous === current) {
+      window.requestAnimationFrame(() => window.onScrollUpdateInstrs(handler));
+      return;
+    }
+    window.previous = current;
+    let firstInstr = Math.floor(current/15);
+    if (current % 120 !== 0) {
+      const remain = current % 4;
+      firstInstr = (remain >= 2) ? Math.ceil(current/4)*4 : Math.floor(current/4)*4;
+    }
+    handler(firstInstr, firstInstr + c.INSTR_ON_UI);
+    window.requestAnimationFrame(() => window.onScrollUpdateInstrs(handler));
   }
 
   /**

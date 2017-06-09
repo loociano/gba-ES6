@@ -13,12 +13,9 @@ describe('Controller', () => {
       getRegisters: function() {}
     };
     view = {
-      _window: {
-        onScrollUpdateInstrs: function() {}
-      },
       bind: function() {},
       render: function() {},
-      onScrollUpdateInstrs: function() {}
+      handleScrollInstrs: function() {}
     };
     controller = new Controller(model, view);
   });

@@ -91,22 +91,18 @@ ul {
     vertical-align: top;
     text-align: center;
 }
-
 #infinite-list {
     position: relative;
 }
-
 #infinite-list #scroll-view {
     overflow-y: scroll;
     height: 304px;
 }
-
 #infinite-list ul {
     position: absolute;
     top: 0;
     padding: 0 5px;
 }
-
 #infinite-list ul li {
     line-height: 1em;
     height: 1em;

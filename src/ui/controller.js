@@ -1,3 +1,5 @@
+import View from './view';
+
 export default class Controller {
 
   /**
@@ -11,12 +13,12 @@ export default class Controller {
     this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value));
     this._view.bind('load', (bios) => this.load(bios));
     this._view.bind('executeNext', () => this.executeNext());
-    this._view.bind('program-scroll', (evt) => this._view.onMouseWheel(evt));
+    this._view.bind('program-scroll', (evt) => View.onMouseWheel(evt));
     this._updateMemory();
     this._updateProgram();
     this._updateCpu();
 
-    this._view._window.onScrollUpdateInstrs((firstInstr, amount) =>
+    this._view.handleScrollInstrs((firstInstr, amount) =>
       this._view.render('program', {
         instrs: this._model.getInstrs(firstInstr, amount),
         offset:firstInstr})
