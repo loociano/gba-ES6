@@ -1,4 +1,5 @@
 import View from './view';
+import * as c from '../constants';
 
 export default class Controller {
 
@@ -18,10 +19,16 @@ export default class Controller {
     this._updateProgram();
     this._updateCpu();
 
-    this._view.handleScrollInstrs((firstInstr, amount) =>
-      this._view.render('program', {
-        instrs: this._model.getInstrs(firstInstr, amount),
-        offset:firstInstr})
+    this._view.handleScrollInstrs((firstInstr, amount) => {
+        this._view.render('program', {
+          instrs: this._model.getInstrs(firstInstr, amount),
+          offset: firstInstr
+        });
+        this._view.render('currentInstr', {
+          offset: firstInstr,
+          pc: this._model.getPC()
+        });
+      }
     );
   }
 
@@ -33,14 +40,18 @@ export default class Controller {
     this._updateMemory();
     this._updateProgram();
     this._model.boot((current, registers) => {
-      this._view.render('currentInstr', current);
+      this._view.render('currentInstr', {offset: current, pc: this._model.getPC()});
       this._view.render('cpu', registers);
     });
   }
 
   executeNext() {
     this._model.executeNext((current, registers) => {
-      this._view.render('currentInstr', current);
+      this._view.render('program', {
+        instrs: this._model.getInstrs(current, current + c.INSTR_ON_UI),
+        offset: current
+      });
+      this._view.render('currentInstr', {offset: current, pc: this._model.getPC()});
       this._view.render('cpu', registers);
     });
   }

@@ -43,9 +43,6 @@ ul {
 #debugger ul {
     padding: 5px;
 }
-#debugger li {
-    transition: background-color 0.2s ease;
-}
 #memory, #stack, #program, #screen canvas {
     border: 1px solid #c3c3c3;
 }
@@ -73,11 +70,15 @@ ul {
     color: white;
 }
 #debugger li.selected:hover {
-    color: black;
+    background-color: black;
+    color: white;
     cursor: default;
 }
 #program li:hover, #cpu li:hover, #stack li:hover {
     background-color: #ccc;
+}
+#program ul {
+    width: 100%;
 }
 #program ul, #cpu ul, #stack ul, #flags label, #flags input[type="checkbox"] {
     cursor: pointer;
@@ -95,13 +96,13 @@ ul {
     position: relative;
 }
 #infinite-list #scroll-view {
-    overflow-y: scroll;
+    overflow-y: hidden;
     height: 304px;
 }
 #infinite-list ul {
     position: absolute;
     top: 0;
-    padding: 0 5px;
+    padding: 0;
 }
 #infinite-list ul li {
     line-height: 1em;

@@ -84,4 +84,8 @@ export default class Model {
   getRegisters() {
     return this._gba._cpu._r;
   }
+
+  getPC() {
+    return this._gba._cpu._r.pc;
+  }
 }

@@ -97,7 +97,7 @@ export default class View {
       case 'cpu':
         return this._renderCpu(args);
       case 'currentInstr':
-        return this._highlightCurrentInstr(args);
+        return this._highlightCurrentInstr(args.offset, args.pc);
       case 'memory':
         return this._renderMemoryPage(args);
       case 'program':
@@ -137,14 +137,16 @@ export default class View {
   }
 
   /**
+   * @param {number} offset
    * @param {number} pc
    * @private
    */
-  _highlightCurrentInstr(pc) {
+  _highlightCurrentInstr(offset, pc) {
     const $old = this._document.getElementsByClassName('selected')[0];
     if ($old) $old.className = '';
-    const line = pc/4;
-    this.$programUl.childNodes[line].className = 'selected';
+    const highlight = pc - 8;
+    if (highlight < offset || highlight > offset + c.INSTR_ON_UI*4) return;
+    this.$programUl.children[(highlight - offset)/4].className = 'selected';
   }
 
   /**

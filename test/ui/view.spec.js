@@ -169,14 +169,27 @@ describe('View', () => {
     it('should highlight current instruction', () => {
       view.render('program', {instrs: new Uint8Array(100), offset: 0});
 
-      view.render('currentInstr', 0);
+      view.render('currentInstr', {offset: 0, pc: 8});
       $programLines = dom.window.document.querySelectorAll('#program ul li');
       assert.equal($programLines[0].className, 'selected');
-      assert.equal($programLines[1].className, '');
 
-      view.render('currentInstr', 4);
+      view.render('currentInstr', {offset: 8, pc: 8});
       assert.equal($programLines[0].className, '');
-      assert.equal($programLines[1].className, 'selected');
+
+      view.render('currentInstr', {offset: 0, pc: 80}); // 18*4=72
+      assert.equal($programLines[18].className, 'selected');
+
+      view.render('currentInstr', {offset: 0, pc: 88});
+      assert.equal($programLines[18].className, '');
+
+      view.render('currentInstr', {offset: 100, pc: 107});
+      assert.equal($programLines[0].className, '');
+
+      view.render('currentInstr', {offset: 100, pc: 108});
+      assert.equal($programLines[0].className, 'selected');
+
+      view.render('currentInstr', {offset: 100, pc: (100+18*4)+8});
+      assert.equal($programLines[18].className, 'selected');
     });
   });
 });
