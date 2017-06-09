@@ -18,18 +18,26 @@ export default class Controller {
     this._updateMemory();
     this._updateProgram();
     this._updateCpu();
+    this._view.handleScrollInstrs((firstInstr, amount) => this.handleScrollInstrs(firstInstr, amount));
+  }
 
-    this._view.handleScrollInstrs((firstInstr, amount) => {
-        this._view.render('program', {
-          instrs: this._model.getInstrs(firstInstr, amount),
-          offset: firstInstr
-        });
-        this._view.render('currentInstr', {
-          offset: firstInstr,
-          pc: this._model.getPC()
-        });
-      }
-    );
+  /**
+   * @param firstInstr
+   * @param amount
+   */
+  handleScrollInstrs(firstInstr, amount) {
+    const pc = this._model.getPC();
+    let offset = firstInstr;
+    if (pc >= 8) offset = pc - 8 + firstInstr;
+
+    this._view.render('program', {
+      instrs: this._model.getInstrs(offset, amount),
+      offset: offset
+    });
+    this._view.render('currentInstr', {
+      offset: offset,
+      pc: this._model.getPC()
+    });
   }
 
   /**

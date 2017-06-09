@@ -132,7 +132,7 @@ export default class View {
       const remain = current % 4;
       firstInstr = (remain >= 2) ? Math.ceil(current/4)*4 : Math.floor(current/4)*4;
     }
-    handler(firstInstr, firstInstr + c.INSTR_ON_UI);
+    handler(firstInstr, c.INSTR_ON_UI);
     window.requestAnimationFrame(() => window.onScrollUpdateInstrs(handler));
   }
 
