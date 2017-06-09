@@ -34,9 +34,6 @@ ul {
 #debugger textarea:focus {
     outline-width: 0;
 }
-#debugger ul {
-    overflow-y: auto;
-}
 #menubar li {
     cursor: pointer;
 }
@@ -93,4 +90,28 @@ ul {
 #controls {
     vertical-align: top;
     text-align: center;
+}
+
+#infinite-list {
+    position: relative;
+}
+
+#infinite-list #scroll-view {
+    overflow-y: scroll;
+    height: 304px;
+}
+
+#infinite-list ul {
+    position: absolute;
+    top: 0;
+    padding: 0 5px;
+}
+
+#infinite-list ul li {
+    line-height: 1em;
+    height: 1em;
+}
+
+#infinite-list #scroll-view .spacer {
+    height: -webkit-calc(1em * 134217728); /* 0x800 0000 */
 }

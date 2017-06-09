@@ -11,3 +11,4 @@ export const ROM_HEADER_TITLE_START = 0xa0;
 export const ROM_HEADER_TITLE_END = 0xac;
 
 export const ALU_OPCODES = ['and', 'eor', 'sub', 'rsb', 'add', 'adc', 'sbc', 'rsc', 'tst', 'teq', 'cmp', 'cmn', 'orr', 'mov', 'bic', 'mvn'];
+export const INSTR_ON_UI = 19;

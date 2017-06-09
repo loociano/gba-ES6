@@ -66,11 +66,16 @@ export default class Model {
    * @return {Uint8Array} memory
    */
   getMemory() {
-    return this._gba.getMemory();
+    return this._gba._cpu._mmu._memory;
   }
 
-  getProgram() {
-    return this._gba.getProgram();
+  /**
+   * @param offset
+   * @param length
+   * @return {Array}
+   */
+  getInstrs(offset, length) {
+    return this._gba._cpu._mmu.readArray(offset, length);
   }
 
   /**

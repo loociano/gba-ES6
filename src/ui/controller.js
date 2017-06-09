@@ -11,9 +11,16 @@ export default class Controller {
     this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value));
     this._view.bind('load', (bios) => this.load(bios));
     this._view.bind('executeNext', () => this.executeNext());
+    this._view.bind('program-scroll', (evt) => this._view.onMouseWheel(evt));
     this._updateMemory();
     this._updateProgram();
     this._updateCpu();
+
+    this._view._window.onScrollUpdateInstrs((firstInstr, amount) =>
+      this._view.render('program', {
+        instrs: this._model.getInstrs(firstInstr, amount),
+        offset:firstInstr})
+    );
   }
 
   /**
@@ -49,7 +56,7 @@ export default class Controller {
   }
 
   _updateProgram() {
-    this._view.render('program', this._model.getProgram());
+    this._view.render('program', {instrs: this._model.getInstrs(0, 20), offset: 0});
   }
 
   _updateCpu() {

@@ -2,11 +2,11 @@ import {describe, it, beforeEach} from 'mocha';
 import {assert} from 'chai';
 import {JSDOM} from 'jsdom';
 import View from '../../src/ui/view';
-import Utils from '../../src/utils';
+import * as c from '../../src/constants';
 
 describe('View', () => {
   let dom, view;
-  let $load, $program, $memory, $registers, $flag, $nextButton;
+  let $load, $program, $infiniteList, $programLines, $programScrollView, $memory, $registers, $flag, $nextButton;
   const mockReader = {
     /**
      * @param {Array} file
@@ -26,18 +26,21 @@ describe('View', () => {
     dom = new JSDOM(`
       <input id="load" type="file"/>
       <div id="cpu"><ul></ul></div>
-      <div id="program"><ul></ul></div>
+      <div id="program"><div id="infinite-list"><div id="scroll-view"><ul></ul></div></div></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
       <div id="controls"><button name="next">next</button></div>
     `);
     $load = dom.window.document.getElementById('load');
-    $program = dom.window.document.querySelector('#program ul');
+    $programLines = dom.window.document.querySelectorAll('#program ul li');
+    $infiniteList = dom.window.document.getElementById('infinite-list');
+    $program = dom.window.document.getElementById('program');
+    $programScrollView = dom.window.document.querySelector('#program #scroll-view');
     $memory = dom.window.document.querySelector('#memory textarea');
     $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
     $nextButton = dom.window.document.querySelector('#controls button[name="next"]');
 
-    view = new View(dom.window.document, mockReader);
+    view = new View(dom.window, mockReader);
   });
   it('should construct', () => {
     assert.throws( () => new View(undefined), Error);
@@ -126,42 +129,54 @@ describe('View', () => {
     it('should render empty program', () => {
       const empty = new Uint8Array(100);
 
-      view.render('program', empty);
-      const $nodes = $program.children;
-      assert.equal($nodes.length, 100);
-      assert.equal($nodes[0].innerText,  '00000000 00000000  and r0,r0,r0');
-      assert.equal($nodes[99].innerText, '0000018c 00000000  and r0,r0,r0');
+      view.render('program', {instrs: empty, offset: 0});
+      $programLines = dom.window.document.querySelectorAll('#program ul li');
+      assert.equal($programLines.length, c.INSTR_ON_UI);
+      assert.equal($programLines[0].innerText,  '00000000 00000000  and r0,r0,r0');
+      assert.equal($programLines[c.INSTR_ON_UI-1].innerText, '00000048 00000000  and r0,r0,r0');
     });
     it('should render program instructions', () => {
-      const empty = new Uint8Array(8);
-      const program = [0xea000018, 0xea000004, 0xea00004c, 0xe35e0000, 0xe3a0e004, 0xe3a0c301, 0xe59cc300, 0xffffffff];
+      const empty = new Uint8Array(20);
+      const program = [0xea000018, 0xea000004, 0xea00004c, 0xe35e0000, 0xe3a0e004, 0xe3a0c301, 0xe59cc300, 0xffffffff,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 
-      view.render('program', program);
-      const $nodes = $program.children;
-      assert.equal($nodes.length, 8);
-      assert.equal($nodes[0].innerText, '00000000 ea000018  b 0x68');
-      assert.equal($nodes[1].innerText, '00000004 ea000004  b 0x1c');
-      assert.equal($nodes[2].innerText, '00000008 ea00004c  b 0x0140');
-      assert.equal($nodes[3].innerText, '0000000c e35e0000  cmp r14,0x00');
-      assert.equal($nodes[4].innerText, '00000010 e3a0e004  mov r14,0x04');
-      assert.equal($nodes[5].innerText, '00000014 e3a0c301  mov r12,0x04000000');
-      assert.equal($nodes[6].innerText, '00000018 e59cc300  ldr r12,[r12,0x0300]');
-      assert.equal($nodes[7].innerText, '0000001c ffffffff  ???');
+      view.render('program', {instrs: program, offset: 0});
+      $programLines = dom.window.document.querySelectorAll('#program ul li');
+      assert.equal($programLines.length, c.INSTR_ON_UI);
+      assert.equal($programLines[0].innerText, '00000000 ea000018  b 0x68');
+      assert.equal($programLines[1].innerText, '00000004 ea000004  b 0x1c');
+      assert.equal($programLines[2].innerText, '00000008 ea00004c  b 0x0140');
+      assert.equal($programLines[3].innerText, '0000000c e35e0000  cmp r14,0x00');
+      assert.equal($programLines[4].innerText, '00000010 e3a0e004  mov r14,0x04');
+      assert.equal($programLines[5].innerText, '00000014 e3a0c301  mov r12,0x04000000');
+      assert.equal($programLines[6].innerText, '00000018 e59cc300  ldr r12,[r12,0x0300]');
+      assert.equal($programLines[7].innerText, '0000001c ffffffff  ???');
 
-      view.render('program', empty);
-      assert.equal($program.children.length, 8, 'Should override the previous program');
+      view.render('program', {instrs: empty, offset: 0});
+      assert.equal($programLines.length, c.INSTR_ON_UI, 'Should override the previous program');
+      assert.equal($programLines[0].innerText,  '00000000 00000000  and r0,r0,r0');
+    });
+    it('should bind onmousewheel (scroll)', () => {
+      let called = false;
+      const handler = () => {called = true; };
+      const evt = dom.window.document.createEvent('HTMLEvents');
+      evt.initEvent('wheel', false, true);
+
+      view.bind('program-scroll', handler);
+      $infiniteList.dispatchEvent(evt);
+      assert.isTrue(called);
     });
     it('should highlight current instruction', () => {
-      view.render('program', new Uint8Array(100));
-      const $instrs = $program.children;
+      view.render('program', {instrs: new Uint8Array(100), offset: 0});
 
       view.render('currentInstr', 0);
-      assert.equal($instrs[0].className, 'selected');
-      assert.equal($instrs[1].className, '');
+      $programLines = dom.window.document.querySelectorAll('#program ul li');
+      assert.equal($programLines[0].className, 'selected');
+      assert.equal($programLines[1].className, '');
 
       view.render('currentInstr', 4);
-      assert.equal($instrs[0].className, '');
-      assert.equal($instrs[1].className, 'selected');
+      assert.equal($programLines[0].className, '');
+      assert.equal($programLines[1].className, 'selected');
     });
   });
 });

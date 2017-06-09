@@ -1,20 +1,57 @@
 import Utils from '../utils';
 import Decoder from '../decoder';
+import * as c from '../constants';
 
 export default class View {
 
   /**
-   * @param {HTMLDocument} document
+   * @param {Window} window
    * @param {FileReader} reader
    */
-  constructor(document, reader){
-    if (typeof document !== 'object') throw new Error('MissingDocument');
+  constructor(window, reader){
+    if (typeof window !== 'object') throw new Error('MissingDocument');
     if (typeof reader !== 'object') throw new Error('MissingReader');
-    this._document = document;
+    this._window = window;
+    this._document = window.document;
     this._reader = reader;
-    this.$memory = document.querySelector('#memory textarea');
-    this.$programUl = document.querySelector('#program ul');
-    this.$cpu = document.querySelector('#cpu ul');
+    this.$memory = this._document.querySelector('#memory textarea');
+    this.$list = this._document.getElementById('infinite-list');
+    this.$programUl = this._document.querySelector('#program ul');
+    this.$cpu = this._document.querySelector('#cpu ul');
+    window.$scrollView = this._document.querySelector('#infinite-list #scroll-view');
+
+    this._initDOM();
+
+    this.$programInstrs = this._document.querySelectorAll('#infinite-list li');
+    window.previous = null;
+    window.instrHeight = this.$programInstrs[0].getBoundingClientRect().height;
+
+    window.onScrollUpdateInstrs = function(handler) {
+      let current = window.$scrollView.scrollTop;
+      if (window.previous === current) {
+        window.requestAnimationFrame(function() {
+          window.onScrollUpdateInstrs(handler);
+        });
+        return;
+      }
+      window.previous = current;
+      let firstInstr = Math.floor(current/15);
+      if (current % 120 !== 0) {
+        const remain = current % 4;
+        firstInstr = (remain >= 2) ? Math.ceil(current/4)*4 : Math.floor(current/4)*4;
+      }
+      handler(firstInstr, firstInstr + c.INSTR_ON_UI);
+      window.requestAnimationFrame(function() {
+        window.onScrollUpdateInstrs(handler);
+      });
+    };
+  }
+
+  _initDOM() {
+    for(let i = 0; i < c.INSTR_ON_UI; i++) {
+      const $li = this._document.createElement('li');
+      this.$programUl.appendChild($li);
+    }
   }
 
   /**
@@ -47,7 +84,21 @@ export default class View {
         const $button = this._document.querySelector('#controls button[name="next"]');
         View.on($button, 'click', handler);
         break;
+      case 'program-scroll':
+        View.on(this.$list, 'wheel', handler);
+        break;
     }
+  }
+
+  /**
+   * @param {Event} evt
+   */
+  onMouseWheel(evt) {
+    let delta = evt.wheelDeltaY;
+    if (Math.abs(delta) < window.instrHeight) {
+      delta = window.instrHeight * (delta > 0 ? 1 : -1);
+    }
+    window.$scrollView.scrollTop -= delta;
   }
 
   /**
@@ -74,7 +125,7 @@ export default class View {
       case 'memory':
         return this._renderMemoryPage(args);
       case 'program':
-        return this._renderProgramPage(args);
+        return this._renderProgramPage(args.instrs, args.offset);
     }
   }
 
@@ -119,17 +170,13 @@ export default class View {
 
   /**
    * @param {Array} memory
+   * @param {number} offset
    * @private
    */
-  _renderProgramPage(memory) {
-    const lines = this.$programUl.childNodes;
-    for(let i = 0; i < memory.length; i++) {
-      let $li = lines[i];
-      if (!$li) {
-        $li = this._document.createElement('li');
-        this.$programUl.appendChild($li);
-      }
-      const pc = i*4;
+  _renderProgramPage(memory, offset) {
+    for(let i = 0; i < this.$programInstrs.length; i++) {
+      let $li = this.$programInstrs[i];
+      const pc = i*4 + offset;
       $li.innerText = `${Utils.to32hex(pc)} ${Utils.to32hex(memory[i])}  ${Decoder.decodeToString(pc, memory[i])}`;
     }
   }

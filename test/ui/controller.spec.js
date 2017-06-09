@@ -9,12 +9,16 @@ describe('Controller', () => {
       called: false,
       setFlag: function() { this.called = true; },
       getMemory: function() {},
-      getProgram: function() {},
+      getInstrs: function() {},
       getRegisters: function() {}
     };
     view = {
+      _window: {
+        onScrollUpdateInstrs: function() {}
+      },
       bind: function() {},
-      render: function() {}
+      render: function() {},
+      onScrollUpdateInstrs: function() {}
     };
     controller = new Controller(model, view);
   });
