@@ -19,6 +19,7 @@ export default class View {
     this.$program = this._document.getElementById('program');
     this.$programInstrs = null; // will hold all the instr li
     this.$lineInput = this._document.querySelector('input[name="programLine"]');
+    this.$registers = this._document.querySelectorAll('#cpu span');
     this._initDOM();
   }
 
@@ -133,26 +134,40 @@ export default class View {
    * @private
    */
   _renderCpu(registers) {
-    const $registers = this.$cpu.childNodes;
-    for(let r = 0; r < 18; r++) {
-      let $li = $registers[r];
-      if (!$li) {
-        $li = this._document.createElement('li');
-        this.$cpu.appendChild($li);
+    for(let r = 0; r < this.$registers.length; r++) {
+      switch(r){
+        case 15:
+          if (registers['pc'] !== undefined) {
+            this.$registers[r].innerText = Utils.to32hex(registers['pc']);
+            this.$registers[r].className = 'updated';
+          } else {
+            this.$registers[r].className = '';
+          }
+          break;
+        case 16:
+          if (registers['cpsr'] !== undefined) {
+            this.$registers[r].innerText = Utils.to32hex(registers['cpsr']);
+            this.$registers[r].className = 'updated';
+          } else {
+            this.$registers[r].className = '';
+          }
+          break;
+        case 17:
+          if (registers['sprs'] !== undefined) {
+            this.$registers[r].innerText = Utils.to32hex(registers['sprs']);
+            this.$registers[r].className = 'updated';
+          } else {
+            this.$registers[r].className = '';
+          }
+          break;
+        default:
+          if (registers[`r${r}`] !== undefined) {
+            this.$registers[r].innerText = Utils.to32hex(registers[`r${r}`]);
+            this.$registers[r].className = 'updated';
+          } else {
+            this.$registers[r].className = '';
+          }
       }
-      let content;
-      if (r === 15) {
-        content = `pc &nbsp;&nbsp;${Utils.to32hex(registers['pc'])}`;
-      } else if (r === 16) {
-        content = `cpsr ${Utils.to32hex(registers['cpsr'])}`;
-      } else if (r === 17) {
-        content = `sprs ${Utils.to32hex(registers['sprs'])}`;
-      } else if (r < 10) {
-        content = `r${r} &nbsp;&nbsp;${Utils.to32hex(registers[`r${r}`])}`;
-      } else {
-        content = `r${r} &nbsp;${Utils.to32hex(registers[`r${r}`])}`;
-      }
-      $li.innerHTML = content;
     }
   }
 

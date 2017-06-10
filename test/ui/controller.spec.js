@@ -40,7 +40,6 @@ describe('Controller', () => {
   describe('Initialization', () => {
     it('should render UI elements', () => {
       controller = new Controller(model, view);
-      assert.equal(renderings['cpu'], true);
       assert.equal(renderings['program'], true);
       assert.equal(renderings['memory'], true);
     });

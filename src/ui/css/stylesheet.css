@@ -92,3 +92,6 @@ ul {
     vertical-align: top;
     text-align: center;
 }
+#cpu ul span.updated {
+    background-color: yellow;
+}

@@ -20,7 +20,7 @@ export default class Controller {
     this._view.bind('setProgramLine', (line) => this.setProgramLine(line) );
     this._view.bind('onKeyDownProgramLine', (line) => this.setProgramLine(line) );
     // Renderings
-    this.renderState(this._model.getRegisters());
+    this.renderProgram();
     this._view.render('memory', this._model.getMemory());
   }
 

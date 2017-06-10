@@ -25,7 +25,27 @@ describe('View', () => {
   beforeEach( () => {
     dom = new JSDOM(`
       <input id="load" type="file"/>
-      <div id="cpu"><ul></ul></div>
+      <div id="cpu">
+       <ul>
+        <li>r0 &nbsp;&nbsp;<span id="r0">00000000</span></li>
+        <li>r1 &nbsp;&nbsp;<span id="r1">00000000</span></li>
+        <li>r2 &nbsp;&nbsp;<span id="r2">00000000</span></li>
+        <li>r3 &nbsp;&nbsp;<span id="r3">00000000</span></li>
+        <li>r4 &nbsp;&nbsp;<span id="r4">00000000</span></li>
+        <li>r5 &nbsp;&nbsp;<span id="r5">00000000</span></li>
+        <li>r6 &nbsp;&nbsp;<span id="r6">00000000</span></li>
+        <li>r7 &nbsp;&nbsp;<span id="r7">00000000</span></li>
+        <li>r8 &nbsp;&nbsp;<span id="r8">00000000</span></li>
+        <li>r9 &nbsp;&nbsp;<span id="r9">00000000</span></li>
+        <li>r10 &nbsp;<span id="r10">00000000</span></li>
+        <li>r11 &nbsp;<span id="r11">00000000</span></li>
+        <li>r12 &nbsp;<span id="r12">00000000</span></li>
+        <li>r13 &nbsp;<span id="r13">00000000</span></li>
+        <li>r14 &nbsp;<span id="r14">00000000</span></li>
+        <li>pc &nbsp;&nbsp;<span id="pc">00000000</span></li>
+        <li>cpsr <span id="cpsr">00000000</span></li>
+        <li>sprs <span id="sprs">00000000</span></li>
+       </ul></div>
       <div id="program"><ul></ul><input name="programLine"/><button name="setProgramLine"></button></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
@@ -39,6 +59,7 @@ describe('View', () => {
     $memory = dom.window.document.querySelector('#memory textarea');
     $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
     $nextButton = dom.window.document.querySelector('#controls button[name="next"]');
+    $registers = dom.window.document.querySelectorAll('#cpu span');
 
     view = new View(dom.window, mockReader);
     view.mockKeyPress = function($elt, key) {
@@ -96,26 +117,38 @@ describe('View', () => {
       const registers = { r0: 0, r1: 1, r2: 2, r3: 3, r4: 4, r5: 5, r6: 6, r7: 7, r8: 8, r9: 9, r10: 10, r11: 11, r12: 12, r13: 13, r14: 14, pc: 15, cpsr: 16, sprs: 17};
 
       view.render('cpu', registers);
-      $registers = dom.window.document.querySelectorAll('#cpu ul li');
+
       assert.equal($registers.length, 18);
-      assert.equal($registers[0].innerHTML, 'r0 &nbsp;&nbsp;00000000');
-      assert.equal($registers[1].innerHTML, 'r1 &nbsp;&nbsp;00000001');
-      assert.equal($registers[2].innerHTML, 'r2 &nbsp;&nbsp;00000002');
-      assert.equal($registers[3].innerHTML, 'r3 &nbsp;&nbsp;00000003');
-      assert.equal($registers[4].innerHTML, 'r4 &nbsp;&nbsp;00000004');
-      assert.equal($registers[5].innerHTML, 'r5 &nbsp;&nbsp;00000005');
-      assert.equal($registers[6].innerHTML, 'r6 &nbsp;&nbsp;00000006');
-      assert.equal($registers[7].innerHTML, 'r7 &nbsp;&nbsp;00000007');
-      assert.equal($registers[8].innerHTML, 'r8 &nbsp;&nbsp;00000008');
-      assert.equal($registers[9].innerHTML, 'r9 &nbsp;&nbsp;00000009');
-      assert.equal($registers[10].innerHTML, 'r10 &nbsp;0000000a');
-      assert.equal($registers[11].innerHTML, 'r11 &nbsp;0000000b');
-      assert.equal($registers[12].innerHTML, 'r12 &nbsp;0000000c');
-      assert.equal($registers[13].innerHTML, 'r13 &nbsp;0000000d');
-      assert.equal($registers[14].innerHTML, 'r14 &nbsp;0000000e');
-      assert.equal($registers[15].innerHTML, 'pc &nbsp;&nbsp;0000000f');
-      assert.equal($registers[16].innerHTML, 'cpsr 00000010');
-      assert.equal($registers[17].innerHTML, 'sprs 00000011');
+      assert.equal($registers[0].innerText, '00000000');
+      assert.equal($registers[1].innerText, '00000001');
+      assert.equal($registers[2].innerText, '00000002');
+      assert.equal($registers[3].innerText, '00000003');
+      assert.equal($registers[4].innerText, '00000004');
+      assert.equal($registers[5].innerText, '00000005');
+      assert.equal($registers[6].innerText, '00000006');
+      assert.equal($registers[7].innerText, '00000007');
+      assert.equal($registers[8].innerText, '00000008');
+      assert.equal($registers[9].innerText, '00000009');
+      assert.equal($registers[10].innerText, '0000000a');
+      assert.equal($registers[11].innerText, '0000000b');
+      assert.equal($registers[12].innerText, '0000000c');
+      assert.equal($registers[13].innerText, '0000000d');
+      assert.equal($registers[14].innerText, '0000000e');
+      assert.equal($registers[15].innerText, '0000000f');
+      assert.equal($registers[16].innerText, '00000010');
+      assert.equal($registers[17].innerText, '00000011');
+    });
+    it('should highlight modified registers', () => {
+      const registers = { r1: 0xa, pc: 0xb};
+
+      view.render('cpu', registers);
+      assert.equal($registers[0].innerHTML, '00000000');
+      assert.equal($registers[0].className, '');
+      assert.equal($registers[1].innerText, '0000000a');
+      assert.equal($registers[1].className, 'updated');
+      // ...
+      assert.equal($registers[15].innerText, '0000000b');
+      assert.equal($registers[15].className, 'updated');
     });
   });
   describe('Memory view', () => {
