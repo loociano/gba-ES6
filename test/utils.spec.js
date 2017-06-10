@@ -40,6 +40,14 @@ describe('Utils', () => {
     assert.equal(Utils.toHex(0), '00');
     assert.equal(Utils.toHex(0x123), '0123');
   });
+  it('should parse an hex', () => {
+    assert.equal(Utils.hexStrToNum('0'), 0);
+    assert.equal(Utils.hexStrToNum('f'), 0xf);
+    assert.equal(Utils.hexStrToNum('ff'), 0xff);
+    assert.equal(Utils.hexStrToNum('0abc'), 0xabc);
+    assert.isNaN(Utils.hexStrToNum('-1'));
+    assert.isNaN(Utils.hexStrToNum('g'));
+  });
   it('should format to 32 bits', () => {
     assert.equal(Utils.to32hex(0), '00000000');
     assert.equal(Utils.to32hex(0x123), '00000123');

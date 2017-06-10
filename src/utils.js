@@ -30,6 +30,14 @@ export default class Utils {
   }
 
   /**
+   * @param hexString {string}
+   * @return {number}
+   */
+  static hexStrToNum(hexString) {
+    return parseInt('0x'+hexString);
+  }
+
+  /**
    * @param {number} number
    * @return {string} padded hex string (32 bits)
    */
