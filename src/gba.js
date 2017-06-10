@@ -22,11 +22,15 @@ export default class GBA {
     this._rom = ROM;
   }
 
+  getCPU() {
+    return this._cpu;
+  }
+
   start(){
     this._cpu.boot();
     try {
       while (true) {
-        this._cpu.cycle();
+        this._cpu.execute();
       }
     } catch (error) {
       Logger.error(error);

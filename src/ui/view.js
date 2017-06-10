@@ -35,7 +35,7 @@ export default class View {
     target.addEventListener(type, callback);
   }
 
-  handleScrollInstrs(handler) {
+  onScrollProgram(handler) {
     this._window.onScrollUpdateInstrs(handler);
   }
 
@@ -56,11 +56,11 @@ export default class View {
         const $load = this._document.getElementById('load');
         View.on($load, 'change', (evt) => this.load(evt, handler));
         break;
-      case 'executeNext':
+      case 'execute':
         const $button = this._document.querySelector('#controls button[name="next"]');
         View.on($button, 'click', handler);
         break;
-      case 'program-scroll':
+      case 'onProgramScroll':
         View.on(this.$list, 'wheel', handler);
         break;
     }
@@ -132,7 +132,7 @@ export default class View {
       const remain = current % 4;
       firstInstr = (remain >= 2) ? Math.ceil(current/4)*4 : Math.floor(current/4)*4;
     }
-    handler(firstInstr, c.INSTR_ON_UI);
+    handler(firstInstr);
     window.requestAnimationFrame(() => window.onScrollUpdateInstrs(handler));
   }
 

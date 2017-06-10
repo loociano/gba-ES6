@@ -13,33 +13,29 @@ export default class Model {
    * @param {function} callback
    */
   boot(callback) {
-    this._gba._cpu.boot();
+    this._gba.getCPU().boot();
     if (typeof callback === 'function') {
-      const instrAddress = this._gba._cpu._decoded[0];
-      callback.call(this, instrAddress, this._gba._cpu._r);
+      const offset = this._gba._cpu._decoded[0];
+      callback.call(this, offset, this.getRegisters());
     }
   }
 
   /**
    * @param {function} callback
    */
-  executeNext(callback) {
-    this._gba._cpu.cycle();
+  execute(callback) {
+    this._gba.getCPU().execute();
     if (typeof callback === 'function') {
-      const instrAddress = this._gba._cpu._decoded[0];
-      callback.call(this, instrAddress, this._gba._cpu._r);
+      const offset = this._gba._cpu._decoded[0];
+      callback.call(this, offset, this.getRegisters());
     }
   }
 
   /**
    * @param {Uint8Array} bios
-   * @param {function} callback
    */
-  setBIOS(bios, callback) {
-    this._gba._cpu.setBIOS(bios);
-    if (typeof callback === 'function') {
-      callback.call(this);
-    }
+  setBIOS(bios) {
+    this._gba.getCPU().setBIOS(bios);
   }
 
   /**
@@ -50,7 +46,7 @@ export default class Model {
   setFlag(flag, value, callback) {
     this._flags[flag] = value;
     if (typeof callback === 'function') {
-      callback.call(this, {flag: flag, value: value});
+      callback.call(this, {flag, value} );
     }
   }
 
@@ -82,10 +78,13 @@ export default class Model {
    * @return {Object} registers
    */
   getRegisters() {
-    return this._gba._cpu._r;
+    return this._gba.getCPU().getRegisters();
   }
 
+  /**
+   * @return {number} pc
+   */
   getPC() {
-    return this._gba._cpu._r.pc;
+    return this._gba.getCPU().getPC();
   }
 }

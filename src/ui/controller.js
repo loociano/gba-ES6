@@ -10,34 +10,15 @@ export default class Controller {
   constructor(model, view) {
     this._model = model;
     this._view = view;
-
-    this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value));
-    this._view.bind('load', (bios) => this.load(bios));
-    this._view.bind('executeNext', () => this.executeNext());
-    this._view.bind('program-scroll', (evt) => View.onMouseWheel(evt));
-    this._updateMemory();
-    this._updateProgram();
-    this._updateCpu();
-    this._view.handleScrollInstrs((firstInstr, amount) => this.handleScrollInstrs(firstInstr, amount));
-  }
-
-  /**
-   * @param firstInstr
-   * @param amount
-   */
-  handleScrollInstrs(firstInstr, amount) {
-    const pc = this._model.getPC();
-    let offset = firstInstr;
-    if (pc >= 8) offset = pc - 8 + firstInstr;
-
-    this._view.render('program', {
-      instrs: this._model.getInstrs(offset, amount),
-      offset: offset
-    });
-    this._view.render('currentInstr', {
-      offset: offset,
-      pc: this._model.getPC()
-    });
+    // Bindings
+    this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value) );
+    this._view.bind('load', (bios) => this.load(bios) );
+    this._view.bind('execute', () => this.execute() );
+    this._view.bind('onProgramScroll', (evt) => View.onMouseWheel(evt) );
+    // Renderings
+    this.renderState(0, this._model.getRegisters());
+    this._view.render('memory', this._model.getMemory());
+    this._view.onScrollProgram( (scrollOffset) => this.onScrollProgram(scrollOffset) );
   }
 
   /**
@@ -45,23 +26,14 @@ export default class Controller {
    */
   load(bios) {
     this._model.setBIOS(bios);
-    this._updateMemory();
-    this._updateProgram();
-    this._model.boot((current, registers) => {
-      this._view.render('currentInstr', {offset: current, pc: this._model.getPC()});
-      this._view.render('cpu', registers);
-    });
+    this._model.boot( (offset, registers) => this.renderState(offset, registers) );
   }
 
-  executeNext() {
-    this._model.executeNext((current, registers) => {
-      this._view.render('program', {
-        instrs: this._model.getInstrs(current, current + c.INSTR_ON_UI),
-        offset: current
-      });
-      this._view.render('currentInstr', {offset: current, pc: this._model.getPC()});
-      this._view.render('cpu', registers);
-    });
+  /**
+   * Executes one instruction
+   */
+  execute() {
+    this._model.execute( (offset, registers) => this.renderState(offset, registers) );
   }
 
   /**
@@ -72,15 +44,31 @@ export default class Controller {
     this._model.setFlag(flag, value, null);
   }
 
-  _updateMemory() {
-    this._view.render('memory', this._model.getMemory());
+  /**
+   * @param {number} programOffset
+   * @param {Object} registers
+   */
+  renderState(programOffset, registers) {
+    this.renderProgram(programOffset);
+    this._view.render('cpu', registers);
   }
 
-  _updateProgram() {
-    this._view.render('program', {instrs: this._model.getInstrs(0, 20), offset: 0});
+  /**
+   * @param {number} offset (first instruction)
+   */
+  renderProgram(offset) {
+    const pc = this._model.getPC();
+    const instrs = this._model.getInstrs(offset, c.INSTR_ON_UI);
+    this._view.render('program', { instrs, offset });
+    this._view.render('currentInstr', { offset, pc });
   }
 
-  _updateCpu() {
-    this._view.render('cpu', this._model.getRegisters());
+  /**
+   * @param {number} scrollOffset is a signed multiple of 8
+   */
+  onScrollProgram(scrollOffset) {
+    const pc = this._model.getPC();
+    const offset = (pc >= 8) ? scrollOffset + (pc - 8) : scrollOffset;
+    this.renderProgram(offset);
   }
 }

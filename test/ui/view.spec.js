@@ -71,7 +71,7 @@ describe('View', () => {
       const handler = function handler() {
         called = true;
       };
-      view.bind('executeNext', handler);
+      view.bind('execute', handler);
       $nextButton.click();
       assert.isTrue(called);
     });
@@ -162,7 +162,7 @@ describe('View', () => {
       const evt = dom.window.document.createEvent('HTMLEvents');
       evt.initEvent('wheel', false, true);
 
-      view.bind('program-scroll', handler);
+      view.bind('onProgramScroll', handler);
       $infiniteList.dispatchEvent(evt);
       assert.isTrue(called);
     });

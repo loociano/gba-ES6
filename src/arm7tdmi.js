@@ -27,16 +27,24 @@ export default class ARM7TDMI {
     this._decoded = null;
   }
 
+  getPC() {
+    return this._r.pc;
+  }
+
+  getRegisters() {
+    return this._r;
+  }
+
+  getNZCVQ() {
+    return this._r.cpsr >>> 27;
+  }
+
   /**
    * @param {Uint8Array} BIOS
    * @public
    */
   setBIOS(BIOS) {
     this._mmu.writeArray(BIOS, 0);
-  }
-
-  getNZCVQ() {
-    return this._r.cpsr >>> 27;
   }
 
   /**
@@ -47,9 +55,10 @@ export default class ARM7TDMI {
   }
 
   /**
+   * Executes one CPU cycle (execute + decode + fetch)
    * @public
    */
-  cycle() {
+  execute() {
     this._execute()._decode()._fetch();
   }
 
