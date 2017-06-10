@@ -1,6 +1,7 @@
 import {describe, beforeEach, it} from 'mocha';
 import {assert} from 'chai';
 import Controller from '../../src/ui/controller';
+import * as c from '../../src/constants';
 
 describe('Controller', () => {
   let model, view, controller;
@@ -18,7 +19,7 @@ describe('Controller', () => {
       getRegisters: function() {},
       setProgramLine: function(line, callback) {
         this._line = line;
-        callback.call(this, line);
+        if (typeof callback === 'function') callback.call(this, line);
       },
       getProgramLine: function() { return this._line; }
     };
@@ -68,28 +69,41 @@ describe('Controller', () => {
   });
   describe('Program rendering on scroll up/down', () => {
     it('should re-render on scroll down', () => {
-      model.currentLine = 0;
+      model.setProgramLine(0);
       controller.onProgramScroll(8);
       assert.equal(renderings['program'], true);
-      assert.equal(model.currentLine, 8);
+      assert.equal(model.getProgramLine(), 8);
     });
     it('should re-render on scroll up', () => {
-      model.currentLine = 32;
+      model.setProgramLine(32);
       controller.onProgramScroll(-8);
       assert.equal(renderings['program'], true);
-      assert.equal(model.currentLine, 24);
+      assert.equal(model.getProgramLine(), 24);
     });
     it('should not re-render on scroll up if at bottom of program', () => {
-      model.currentLine = 0;
+      model.setProgramLine(0);
       controller.onProgramScroll(-8);
       assert.equal(renderings['program'], undefined);
-      assert.equal(model.currentLine, 0);
+      assert.equal(model.getProgramLine(), 0);
+    });
+    it('should not re-render on scroll down if at top of program', () => {
+      const maxValue = c.MEMORY_SIZE + c.EXT_MEMORY_SIZE - c.INSTR_ON_UI*c.ARM_INSTR_LENGTH;
+      model.setProgramLine(maxValue); // max program line 0x0fff ffb0
+      controller.onProgramScroll(8);
+      assert.equal(renderings['program'], undefined);
+      assert.equal(model.getProgramLine(), maxValue);
     });
     it('should re-render on scroll up if there are lines available', () => {
-      model.currentLine = 4;
+      model.setProgramLine(4);
       controller.onProgramScroll(-8);
       assert.equal(renderings['program'], true);
-      assert.equal(model.currentLine, 0);
+      assert.equal(model.getProgramLine(), 0);
+    });
+    it('should re-render on scroll down if there are lines available', () => {
+      model.setProgramLine(0x0fffffa8);
+      controller.onProgramScroll(8);
+      assert.equal(renderings['program'], true);
+      assert.equal(model.getProgramLine(), 0x0fffffb0); // max
     });
   });
   describe('Go to Program Line', () => {
@@ -121,10 +135,19 @@ describe('Controller', () => {
 
       controller.setProgramLine('c');
       assert.equal(renderArgs.offset, 0xc);
-
-      renderings = {};
-      controller.setProgramLine('-1'); // must not render
+    });
+    it('should render max program line', () => {
+      controller.setProgramLine('0fffffb0'); // max value = max memory - 20 lines
+      assert.equal(renderings['program'], true);
+    });
+    it('should not render invalid program lines', () => {
+      controller.setProgramLine('-1');
       assert.equal(renderings['program'], undefined);
+    });
+    it('should default to max when larger than max', () => {
+      controller.setProgramLine('0fffffb4'); // out of bound
+      assert.equal(renderings['program'], true);
+      assert.equal(model.getProgramLine(), 0x0fffffb0); //max
     });
   });
 });

@@ -12,10 +12,18 @@ export default class MMU {
 
   /**
    * @param {number} offset
+   * @return {boolean} true if address is valid
+   */
+  static isValidAddress(offset) {
+    return offset >= 0 && offset < c.MEMORY_SIZE+c.EXT_MEMORY_SIZE;
+  }
+
+  /**
+   * @param {number} offset
    * @return {number} value
    */
   readByte(offset) {
-    if (offset < 0 || offset >= c.MEMORY_SIZE+c.EXT_MEMORY_SIZE) throw new Error('ReadByteOutOfBounds');
+    if (!MMU.isValidAddress(offset)) throw new Error('ReadByteOutOfBounds');
     if (offset < c.MEMORY_SIZE) {
       return this._memory[offset];
     } else {
@@ -51,7 +59,7 @@ export default class MMU {
    * @return {number} word
    */
   readWord(offset) {
-    if (offset < 0 || offset >= c.MEMORY_SIZE+c.EXT_MEMORY_SIZE) throw new Error('ReadWordOutOfBounds');
+    if (!MMU.isValidAddress(offset)) throw new Error('ReadWordOutOfBounds');
     if (offset < c.MEMORY_SIZE) {
       return (this._memory[offset + 3] << 24 >>> 0) + (this._memory[offset + 2] << 16 >>> 0)
         + (this._memory[offset + 1] << 8 >>> 0) + (this._memory[offset] >>> 0);

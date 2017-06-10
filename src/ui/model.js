@@ -1,4 +1,5 @@
 import * as c from '../constants';
+import MMU from '../mmu';
 
 export default class Model {
 
@@ -21,6 +22,10 @@ export default class Model {
     if (typeof callback === 'function') {
       callback.call(this, this.currentLine);
     }
+  }
+
+  static isValidAddress(address) {
+    return MMU.isValidAddress(address);
   }
 
   /**

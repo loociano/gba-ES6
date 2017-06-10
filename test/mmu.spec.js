@@ -37,6 +37,7 @@ describe('MMU', () => {
     assert.throws( () => mmu.readByte(-1), Error);
     assert.throws( () => mmu.readWord(0x10000000), Error);
     assert.throws( () => mmu.readWord(-1), Error);
+    assert.throws( () => mmu.readArray(0x10000000, 1), Error);
   });
   it('should prohibit writes outside memory', () => {
     assert.throws( () => mmu.writeByte(1, c.MEMORY_SIZE), Error);

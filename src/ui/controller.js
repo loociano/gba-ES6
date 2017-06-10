@@ -1,6 +1,7 @@
 import View from './view';
-import * as c from '../constants';
 import Utils from '../utils';
+import Model from './model';
+import * as c from '../constants';
 
 export default class Controller {
 
@@ -65,16 +66,17 @@ export default class Controller {
    * @param {number} delta
    */
   onProgramScroll(delta) {
-    let newLine = this._model.currentLine + delta;
+    const programLine = this._model.getProgramLine();
+    let newLine = programLine + delta;
     if (newLine < 0) {
-      if (this._model.currentLine > 0) {
+      if (programLine > 0) {
         newLine = 0;
       } else {
         return;
       }
     }
-    this._model.currentLine = newLine;
-    this.renderProgram();
+    if (!Model.isValidAddress(newLine + c.INSTR_ON_UI*c.ARM_INSTR_LENGTH - 1)) return;
+    this._model.setProgramLine(newLine, () => this.renderProgram());
   }
 
   /**
@@ -85,6 +87,10 @@ export default class Controller {
     if (line < 0 || isNaN(line) ) {
       return;
     }
-    this._model.setProgramLine(Math.floor(line/4)*4, () => this.renderProgram());
+    let programLine = Math.floor(line/4)*4;
+    if (!Model.isValidAddress(programLine + c.INSTR_ON_UI*c.ARM_INSTR_LENGTH - 1)) {
+      programLine = c.MEMORY_SIZE + c.EXT_MEMORY_SIZE - c.INSTR_ON_UI*c.ARM_INSTR_LENGTH; // default to max
+    }
+    this._model.setProgramLine(programLine, () => this.renderProgram());
   }
 }
