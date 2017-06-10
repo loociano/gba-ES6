@@ -14,11 +14,10 @@ export default class Controller {
     this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value) );
     this._view.bind('load', (bios) => this.load(bios) );
     this._view.bind('execute', () => this.execute() );
-    this._view.bind('onProgramScroll', (evt) => View.onMouseWheel(evt) );
+    this._view.bind('onProgramScroll', (delta) => this.onProgramScroll(delta));
     // Renderings
-    this.renderState(0, this._model.getRegisters());
+    this.renderState(this._model.getRegisters());
     this._view.render('memory', this._model.getMemory());
-    this._view.onScrollProgram( (scrollOffset) => this.onScrollProgram(scrollOffset) );
   }
 
   /**
@@ -26,14 +25,14 @@ export default class Controller {
    */
   load(bios) {
     this._model.setBIOS(bios);
-    this._model.boot( (offset, registers) => this.renderState(offset, registers) );
+    this._model.boot( (registers) => this.renderState(registers) );
   }
 
   /**
    * Executes one instruction
    */
   execute() {
-    this._model.execute( (offset, registers) => this.renderState(offset, registers) );
+    this._model.execute( (registers) => this.renderState(registers) );
   }
 
   /**
@@ -45,30 +44,34 @@ export default class Controller {
   }
 
   /**
-   * @param {number} programOffset
    * @param {Object} registers
    */
-  renderState(programOffset, registers) {
-    this.renderProgram(programOffset);
+  renderState(registers) {
+    this.renderProgram();
     this._view.render('cpu', registers);
   }
 
-  /**
-   * @param {number} offset (first instruction)
-   */
-  renderProgram(offset) {
+  renderProgram() {
     const pc = this._model.getPC();
-    const instrs = this._model.getInstrs(offset, c.INSTR_ON_UI);
+    const offset = this._model.currentLine;
+    const instrs = this._model.getInstrs();
     this._view.render('program', { instrs, offset });
     this._view.render('currentInstr', { offset, pc });
   }
 
   /**
-   * @param {number} scrollOffset is a signed multiple of 8
+   * @param {number} delta
    */
-  onScrollProgram(scrollOffset) {
-    const pc = this._model.getPC();
-    const offset = (pc >= 8) ? scrollOffset + (pc - 8) : scrollOffset;
-    this.renderProgram(offset);
+  onProgramScroll(delta) {
+    let newLine = this._model.currentLine + delta;
+    if (newLine < 0) {
+      if (this._model.currentLine > 0) {
+        newLine = 0;
+      } else {
+        return;
+      }
+    }
+    this._model.currentLine = newLine;
+    this.renderProgram();
   }
 }

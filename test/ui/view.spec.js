@@ -26,16 +26,14 @@ describe('View', () => {
     dom = new JSDOM(`
       <input id="load" type="file"/>
       <div id="cpu"><ul></ul></div>
-      <div id="program"><div id="infinite-list"><div id="scroll-view"><ul></ul></div></div></div>
+      <div id="program"><ul></ul></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
       <div id="controls"><button name="next">next</button></div>
     `);
     $load = dom.window.document.getElementById('load');
-    $programLines = dom.window.document.querySelectorAll('#program ul li');
-    $infiniteList = dom.window.document.getElementById('infinite-list');
     $program = dom.window.document.getElementById('program');
-    $programScrollView = dom.window.document.querySelector('#program #scroll-view');
+    $programLines = dom.window.document.querySelectorAll('#program ul li');
     $memory = dom.window.document.querySelector('#memory textarea');
     $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
     $nextButton = dom.window.document.querySelector('#controls button[name="next"]');
@@ -133,7 +131,7 @@ describe('View', () => {
       $programLines = dom.window.document.querySelectorAll('#program ul li');
       assert.equal($programLines.length, c.INSTR_ON_UI);
       assert.equal($programLines[0].innerText,  '00000000 00000000  and r0,r0,r0');
-      assert.equal($programLines[c.INSTR_ON_UI-1].innerText, '00000048 00000000  and r0,r0,r0');
+      assert.equal($programLines[c.INSTR_ON_UI-1].innerText, '0000004c 00000000  and r0,r0,r0');
     });
     it('should render program instructions', () => {
       const empty = new Uint8Array(20);
@@ -163,7 +161,7 @@ describe('View', () => {
       evt.initEvent('wheel', false, true);
 
       view.bind('onProgramScroll', handler);
-      $infiniteList.dispatchEvent(evt);
+      $program.dispatchEvent(evt);
       assert.isTrue(called);
     });
     it('should highlight current instruction', () => {

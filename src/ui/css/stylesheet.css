@@ -78,7 +78,7 @@ ul {
     background-color: #ccc;
 }
 #program ul {
-    width: 100%;
+    padding: 0;
 }
 #program ul, #cpu ul, #stack ul, #flags label, #flags input[type="checkbox"] {
     cursor: pointer;
@@ -91,24 +91,4 @@ ul {
 #controls {
     vertical-align: top;
     text-align: center;
-}
-#infinite-list {
-    position: relative;
-}
-#infinite-list #scroll-view {
-    overflow-y: hidden;
-    height: 304px;
-}
-#infinite-list ul {
-    position: absolute;
-    top: 0;
-    padding: 0;
-}
-#infinite-list ul li {
-    line-height: 1em;
-    height: 1em;
-}
-
-#infinite-list #scroll-view .spacer {
-    height: -webkit-calc(1em * 134217728); /* 0x800 0000 */
 }

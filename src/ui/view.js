@@ -15,15 +15,10 @@ export default class View {
     this._document = window.document;
     this._reader = reader;
     this.$memory = this._document.querySelector('#memory textarea');
-    this.$list = this._document.getElementById('infinite-list');
-    this.$programUl = this._document.querySelector('#program ul');
     this.$cpu = this._document.querySelector('#cpu ul');
-    this._window.$scrollView = this._document.querySelector('#infinite-list #scroll-view');
+    this.$program = this._document.getElementById('program');
+    this.$programInstrs = null; // will hold all the instr li
     this._initDOM();
-    this.$programInstrs = this._document.querySelectorAll('#infinite-list li');
-    this._window.previous = null;
-    this._window.instrHeight = this.$programInstrs[0].getBoundingClientRect().height;
-    this._window.onScrollUpdateInstrs = this._onScrollUpdateInstrs; // attach
   }
 
   /**
@@ -33,10 +28,6 @@ export default class View {
    */
   static on(target, type, callback) {
     target.addEventListener(type, callback);
-  }
-
-  onScrollProgram(handler) {
-    this._window.onScrollUpdateInstrs(handler);
   }
 
   /**
@@ -61,20 +52,18 @@ export default class View {
         View.on($button, 'click', handler);
         break;
       case 'onProgramScroll':
-        View.on(this.$list, 'wheel', handler);
+        View.on(this.$program, 'wheel', (evt) => View.onMouseWheel(evt, handler));
         break;
     }
   }
 
   /**
    * @param {Event} evt
+   * @param {Function} handler
    */
-  static onMouseWheel(evt) {
-    let delta = evt.wheelDeltaY;
-    if (Math.abs(delta) < window.instrHeight) {
-      delta = window.instrHeight * (delta > 0 ? 1 : -1);
-    }
-    window.$scrollView.scrollTop -= delta;
+  static onMouseWheel(evt, handler) {
+    const delta = (evt.wheelDeltaY) > 0 ? -c.INSTR_ON_SCROLL : c.INSTR_ON_SCROLL;
+    handler(delta);
   }
 
   /**
@@ -109,31 +98,12 @@ export default class View {
    * @private
    */
   _initDOM() {
+    const $programUl = this._document.querySelector('#program ul');
     for(let i = 0; i < c.INSTR_ON_UI; i++) {
       const $li = this._document.createElement('li');
-      this.$programUl.appendChild($li);
+      $programUl.appendChild($li);
     }
-  }
-
-  /**
-   * This function will be called by the {window} object, 'this' is not available.
-   * @param {function} handler
-   * @private
-   */
-  _onScrollUpdateInstrs(handler) {
-    let current = window.$scrollView.scrollTop;
-    if (window.previous === current) {
-      window.requestAnimationFrame(() => window.onScrollUpdateInstrs(handler));
-      return;
-    }
-    window.previous = current;
-    let firstInstr = Math.floor(current/15);
-    if (current % 120 !== 0) {
-      const remain = current % 4;
-      firstInstr = (remain >= 2) ? Math.ceil(current/4)*4 : Math.floor(current/4)*4;
-    }
-    handler(firstInstr);
-    window.requestAnimationFrame(() => window.onScrollUpdateInstrs(handler));
+    this.$programInstrs = this._document.querySelectorAll('#program li');
   }
 
   /**
@@ -145,8 +115,8 @@ export default class View {
     const $old = this._document.getElementsByClassName('selected')[0];
     if ($old) $old.className = '';
     const highlight = pc - 8;
-    if (highlight < offset || highlight > offset + c.INSTR_ON_UI*4) return;
-    this.$programUl.children[(highlight - offset)/4].className = 'selected';
+    if (highlight < offset || highlight >= offset + c.INSTR_ON_UI*4) return;
+    this.$programInstrs[(highlight - offset)/4].className = 'selected';
   }
 
   /**

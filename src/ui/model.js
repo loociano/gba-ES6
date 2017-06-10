@@ -1,3 +1,5 @@
+import * as c from '../constants';
+
 export default class Model {
 
   /**
@@ -7,6 +9,7 @@ export default class Model {
     if (!GBA) throw new Error('MissingGBA');
     this._gba = GBA;
     this._flags = {N: false, Z: false, C: false, V: false, I: false, F: false, T: false, Q: false};
+    this.currentLine = 0;
   }
 
   /**
@@ -15,8 +18,8 @@ export default class Model {
   boot(callback) {
     this._gba.getCPU().boot();
     if (typeof callback === 'function') {
-      const offset = this._gba._cpu._decoded[0];
-      callback.call(this, offset, this.getRegisters());
+      this.currentLine = this._gba._cpu._decoded[0];
+      callback.call(this, this.getRegisters());
     }
   }
 
@@ -26,8 +29,8 @@ export default class Model {
   execute(callback) {
     this._gba.getCPU().execute();
     if (typeof callback === 'function') {
-      const offset = this._gba._cpu._decoded[0];
-      callback.call(this, offset, this.getRegisters());
+      this.currentLine = this._gba._cpu._decoded[0];
+      callback.call(this, this.getRegisters());
     }
   }
 
@@ -66,12 +69,10 @@ export default class Model {
   }
 
   /**
-   * @param offset
-   * @param length
    * @return {Array}
    */
-  getInstrs(offset, length) {
-    return this._gba._cpu._mmu.readArray(offset, length);
+  getInstrs() {
+    return this._gba._cpu._mmu.readArray(this.currentLine, c.INSTR_ON_UI);
   }
 
   /**
