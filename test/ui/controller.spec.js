@@ -51,6 +51,7 @@ describe('Controller', () => {
       assert.equal(bindings['execute'], true);
       assert.equal(bindings['onProgramScroll'], true);
       assert.equal(bindings['setProgramLine'], true);
+      assert.equal(bindings['onKeyDownProgramLine'], true);
     });
   });
   it('should re-render program', () => {

@@ -41,6 +41,12 @@ describe('View', () => {
     $nextButton = dom.window.document.querySelector('#controls button[name="next"]');
 
     view = new View(dom.window, mockReader);
+    view.mockKeyPress = function($elt, key) {
+      const event = dom.window.document.createEvent('Event');
+      event.keyCode = key;
+      event.initEvent('keydown');
+      $elt.dispatchEvent(event);
+    };
   });
   it('should construct', () => {
     assert.throws( () => new View(undefined), Error);
@@ -207,6 +213,15 @@ describe('View', () => {
       $programLineInput.value = 'f';
       $setProgramLine.click();
       assert.equal(programLine, 'f');
+    });
+    it('should bind Enter key on program jump address', () => {
+      let programLine;
+      const handler = (line) => { programLine = line };
+      view.bind('onKeyDownProgramLine', handler);
+      $programLineInput.value = '5';
+
+      view.mockKeyPress($programLineInput, 13);
+      assert.equal(programLine, '5');
     });
   });
 });

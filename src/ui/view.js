@@ -18,6 +18,7 @@ export default class View {
     this.$cpu = this._document.querySelector('#cpu ul');
     this.$program = this._document.getElementById('program');
     this.$programInstrs = null; // will hold all the instr li
+    this.$lineInput = this._document.querySelector('input[name="programLine"]');
     this._initDOM();
   }
 
@@ -54,9 +55,14 @@ export default class View {
         break;
       case 'setProgramLine':
         View.on(this._document.querySelector('button[name="setProgramLine"]'), 'click', () => {
-          const $lineInput = this._document.querySelector('input[name="programLine"]');
-          handler($lineInput.value);
+          handler(this.$lineInput.value);
         });
+        break;
+      case 'onKeyDownProgramLine':
+        View.on(this.$lineInput, 'keydown', (evt) => {
+          if (evt.keyCode === 13) handler(this.$lineInput.value);
+        });
+        break;
     }
   }
 
