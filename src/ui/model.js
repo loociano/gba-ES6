@@ -12,6 +12,17 @@ export default class Model {
     this.currentLine = 0;
   }
 
+  getProgramLine() {
+    return this.currentLine;
+  }
+
+  setProgramLine(line, callback) {
+    this.currentLine = line;
+    if (typeof callback === 'function') {
+      callback.call(this, this.currentLine);
+    }
+  }
+
   /**
    * @param {function} callback
    */

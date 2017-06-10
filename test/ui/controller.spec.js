@@ -5,22 +5,30 @@ import Controller from '../../src/ui/controller';
 describe('Controller', () => {
   let model, view, controller;
   let renderings = {};
+  let renderArgs;
   let bindings = {};
   let flags = {};
   beforeEach( () => {
     model = {
+      _line: 0,
       setFlag: function(flag) { flags[flag] = true; },
       getMemory: function() {},
       getInstrs: function(offset, length) {},
       getPC: function() {},
-      getRegisters: function() {}
+      getRegisters: function() {},
+      setProgramLine: function(line, callback) {
+        this._line = line;
+        callback.call(this, line);
+      },
+      getProgramLine: function() { return this._line; }
     };
     view = {
       bind: function(what) {
         bindings[what] = true;
       },
-      render: function(what) {
+      render: function(what, args) {
         renderings[what] = true;
+        renderArgs = args;
       },
       onScrollProgram: function() {}
     };
@@ -41,6 +49,7 @@ describe('Controller', () => {
       assert.equal(bindings['load'], true);
       assert.equal(bindings['execute'], true);
       assert.equal(bindings['onProgramScroll'], true);
+      assert.equal(bindings['setProgramLine'], true);
     });
   });
   it('should re-render program', () => {
@@ -81,6 +90,41 @@ describe('Controller', () => {
       controller.onProgramScroll(-8);
       assert.equal(renderings['program'], true);
       assert.equal(model.currentLine, 0);
+    });
+  });
+  describe('Go to Program Line', () => {
+    it('should go to program line', () => {
+      controller.setProgramLine('10');
+
+      assert.equal(renderings['program'], true);
+      assert.equal(renderings['currentInstr'], true);
+      assert.equal(renderArgs.offset, 0x10);
+    });
+    it('should validate program line', () => {
+      controller.setProgramLine(-1);
+
+      assert.equal(renderings['program'], undefined);
+      assert.equal(renderings['currentInstr'], undefined);
+    });
+    it('should go to the closest multiple of 4 line', () => {
+      controller.setProgramLine('9');
+
+      assert.equal(renderings['program'], true);
+      assert.equal(renderings['currentInstr'], true);
+      assert.equal(renderArgs.offset, 8);
+
+      controller.setProgramLine('b');
+      assert.equal(renderArgs.offset, 8);
+
+      controller.setProgramLine('c');
+      assert.equal(renderArgs.offset, 0xc);
+
+      controller.setProgramLine('c');
+      assert.equal(renderArgs.offset, 0xc);
+
+      renderings = {};
+      controller.setProgramLine('-1'); // must not render
+      assert.equal(renderings['program'], undefined);
     });
   });
 });

@@ -44,16 +44,19 @@ export default class View {
         );
         break;
       case 'load':
-        const $load = this._document.getElementById('load');
-        View.on($load, 'change', (evt) => this.load(evt, handler));
+        View.on(this._document.getElementById('load'), 'change', (evt) => this.load(evt, handler));
         break;
       case 'execute':
-        const $button = this._document.querySelector('#controls button[name="next"]');
-        View.on($button, 'click', handler);
+        View.on(this._document.querySelector('#controls button[name="next"]'), 'click', handler);
         break;
       case 'onProgramScroll':
         View.on(this.$program, 'wheel', (evt) => View.onMouseWheel(evt, handler));
         break;
+      case 'setProgramLine':
+        View.on(this._document.querySelector('button[name="setProgramLine"]'), 'click', () => {
+          const $lineInput = this._document.querySelector('input[name="programLine"]');
+          handler($lineInput.value);
+        });
     }
   }
 

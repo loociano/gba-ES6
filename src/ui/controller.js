@@ -1,5 +1,6 @@
 import View from './view';
 import * as c from '../constants';
+import Utils from '../utils';
 
 export default class Controller {
 
@@ -15,6 +16,7 @@ export default class Controller {
     this._view.bind('load', (bios) => this.load(bios) );
     this._view.bind('execute', () => this.execute() );
     this._view.bind('onProgramScroll', (delta) => this.onProgramScroll(delta));
+    this._view.bind('setProgramLine', (line) => this.setProgramLine(line) );
     // Renderings
     this.renderState(this._model.getRegisters());
     this._view.render('memory', this._model.getMemory());
@@ -53,7 +55,7 @@ export default class Controller {
 
   renderProgram() {
     const pc = this._model.getPC();
-    const offset = this._model.currentLine;
+    const offset = this._model.getProgramLine();
     const instrs = this._model.getInstrs();
     this._view.render('program', { instrs, offset });
     this._view.render('currentInstr', { offset, pc });
@@ -73,5 +75,16 @@ export default class Controller {
     }
     this._model.currentLine = newLine;
     this.renderProgram();
+  }
+
+  /**
+   * @param {string} hexString
+   */
+  setProgramLine(hexString) {
+    const line = Utils.hexStrToNum(hexString);
+    if (line < 0 || isNaN(line) ) {
+      return;
+    }
+    this._model.setProgramLine(Math.floor(line/4)*4, () => this.renderProgram());
   }
 }

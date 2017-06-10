@@ -6,7 +6,7 @@ import * as c from '../../src/constants';
 
 describe('View', () => {
   let dom, view;
-  let $load, $program, $infiniteList, $programLines, $programScrollView, $memory, $registers, $flag, $nextButton;
+  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flag, $nextButton;
   const mockReader = {
     /**
      * @param {Array} file
@@ -26,7 +26,7 @@ describe('View', () => {
     dom = new JSDOM(`
       <input id="load" type="file"/>
       <div id="cpu"><ul></ul></div>
-      <div id="program"><ul></ul></div>
+      <div id="program"><ul></ul><input name="programLine"/><button name="setProgramLine"></button></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
       <div id="controls"><button name="next">next</button></div>
@@ -34,6 +34,8 @@ describe('View', () => {
     $load = dom.window.document.getElementById('load');
     $program = dom.window.document.getElementById('program');
     $programLines = dom.window.document.querySelectorAll('#program ul li');
+    $setProgramLine = dom.window.document.querySelector('button[name="setProgramLine"]');
+    $programLineInput = dom.window.document.querySelector('input[name="programLine"]');
     $memory = dom.window.document.querySelector('#memory textarea');
     $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
     $nextButton = dom.window.document.querySelector('#controls button[name="next"]');
@@ -188,6 +190,23 @@ describe('View', () => {
 
       view.render('currentInstr', {offset: 100, pc: (100+18*4)+8});
       assert.equal($programLines[18].className, 'selected');
+    });
+    it('should bind program line jump', () => {
+      let programLine;
+      const handler = (line) => { programLine = line };
+      view.bind('setProgramLine', handler);
+
+      $programLineInput.value = '5';
+      $setProgramLine.click();
+      assert.equal(programLine, '5');
+
+      $programLineInput.value = '-1'; // invalid hex
+      $setProgramLine.click();
+      assert.equal(programLine, '-1');
+
+      $programLineInput.value = 'f';
+      $setProgramLine.click();
+      assert.equal(programLine, 'f');
     });
   });
 });
