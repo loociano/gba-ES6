@@ -17,14 +17,14 @@ export default class Controller {
     this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value) );
     this._view.bind('load', (bios) => this.load(bios) );
     this._view.bind('execute', () => this.execute() );
-    this._view.bind('run', () => this.run() )
+    this._view.bind('run', () => this.run() );
     this._view.bind('onProgramScroll', (delta) => this.onProgramScroll(delta));
     this._view.bind('setProgramLine', (line) => this.setProgramLine(line) );
     this._view.bind('onKeyDownProgramLine', (line) => this.setProgramLine(line) );
     // Renderings
     this.renderProgram();
     this._renderMemory();
-    this._view.render('controls', {'run': false, 'next': false});
+    this._view.render('controls', { run: false, step: false});
   }
 
   /**
@@ -33,7 +33,7 @@ export default class Controller {
   load(bios) {
     this._model.setBIOS(bios);
     this._model.boot( (registers) => {
-      this._view.render('controls', {'run': true, 'next': true});
+      this._view.render('controls', {run: true, step: true});
       this.renderState(registers);
     });
   }
@@ -45,9 +45,13 @@ export default class Controller {
     this._model.execute( (registers) => this.renderState(registers) );
   }
 
+  /**
+   * Toggles program execution: either runs the program indefinitely or pauses.
+   */
   run() {
     this._model.toggleRunning( (running) => {
       this._view.render('running', running);
+      this._view.render('controls', { run: true, step: !running});
       this._view.requestFrame(running);
       AnimationFrame.frame( () => this.execute() );
     });

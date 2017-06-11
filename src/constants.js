@@ -15,3 +15,4 @@ export const ALU_OPCODES = ['and', 'eor', 'sub', 'rsb', 'add', 'adc', 'sbc', 'rs
 // UI specific
 export const INSTR_ON_UI = 20;
 export const INSTR_ON_SCROLL = 8;
+export const ENTER_KEYCODE = 13;

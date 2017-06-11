@@ -8,7 +8,7 @@ import AnimationFrame from '../../src/ui/animationFrame';
 
 describe('View', () => {
   let dom, view;
-  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flag, $nextButton, $runButton;
+  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flag, $stepButton, $runButton;
   const mockReader = {
     /**
      * @param {Array} file
@@ -51,7 +51,7 @@ describe('View', () => {
       <div id="program"><ul></ul><input name="programLine"/><button name="setProgramLine"></button></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
-      <div id="controls"><button name="run">Run</button><button name="next">Next</button></div>
+      <div id="controls"><button name="run"></button><button name="step"></button></div>
     `);
     $load = dom.window.document.getElementById('load');
     $program = dom.window.document.getElementById('program');
@@ -60,7 +60,7 @@ describe('View', () => {
     $programLineInput = dom.window.document.querySelector('input[name="programLine"]');
     $memory = dom.window.document.querySelector('#memory textarea');
     $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
-    $nextButton = dom.window.document.querySelector('#controls button[name="next"]');
+    $stepButton = dom.window.document.querySelector('#controls button[name="step"]');
     $runButton = dom.window.document.querySelector('#controls button[name="run"]');
     $registers = dom.window.document.querySelectorAll('#cpu span');
     view = new View(dom.window, mockReader);
@@ -102,20 +102,20 @@ describe('View', () => {
   });
   describe('Controls View', () => {
     it('should render buttons', () => {
-      view.render('controls', {run: false, next: false});
+      view.render('controls', {run: false, step: false});
       assert.isTrue($runButton.disabled);
-      assert.isTrue($nextButton.disabled);
-      view.render('controls', {run: true, next: true});
+      assert.isTrue($stepButton.disabled);
+      view.render('controls', {run: true, step: true});
       assert.isFalse($runButton.disabled);
-      assert.isFalse($nextButton.disabled);
+      assert.isFalse($stepButton.disabled);
     });
-    it('should bind Next button', () => {
+    it('should bind Step button', () => {
       let called = false;
       const handler = function handler() {
         called = true;
       };
       view.bind('execute', handler);
-      $nextButton.click();
+      $stepButton.click();
       assert.isTrue(called);
     });
     it('should bind Run button', () => {
@@ -282,7 +282,7 @@ describe('View', () => {
       view.bind('onKeyDownProgramLine', handler);
       $programLineInput.value = '5';
 
-      view.mockKeyPress($programLineInput, 13);
+      view.mockKeyPress($programLineInput, c.ENTER_KEYCODE);
       assert.equal(programLine, '5');
     });
   });

@@ -61,7 +61,7 @@ describe('Controller', () => {
       assert.equal(renderings['program'], true);
       assert.equal(renderings['memory'], true);
       assert.equal(renderings['controls'], true);
-      assert.deepEqual(renderArgs['controls'], { 'run': false, 'next': false });
+      assert.deepEqual(renderArgs['controls'], { run: false, step: false });
     });
     it('should bind UI elements to actions', () => {
       controller = new Controller(model, view);
@@ -92,7 +92,7 @@ describe('Controller', () => {
     it('should enable controls on program load', () => {
       controller.load(new Uint8Array(1));
       assert.equal(renderings['controls'], true);
-      assert.deepEqual(renderArgs['controls'], { 'run': true, 'next': true });
+      assert.deepEqual(renderArgs['controls'], { run: true, step: true });
     });
     it('should render all on execution', () => {
       controller.execute();
@@ -106,12 +106,16 @@ describe('Controller', () => {
       assert.isTrue(model._running);
       assert.equal(renderings['running'], true);
       assert.equal(renderArgs['running'], true);
+      assert.equal(renderings['controls'], true);
+      assert.deepEqual(renderArgs['controls'], { run: true, step: false }); // while running, step is disabled
 
       renderings = {};
-      controller.run();
+      controller.run(); // will pause
       assert.isFalse(model._running);
       assert.equal(renderings['running'], true);
       assert.equal(renderArgs['running'], false);
+      assert.equal(renderings['controls'], true);
+      assert.deepEqual(renderArgs['controls'], { run: true, step: true });
     });
   });
   describe('Program rendering on scroll up/down', () => {

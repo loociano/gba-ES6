@@ -57,7 +57,7 @@ export default class View {
         View.on(this._document.getElementById('load'), 'change', (evt) => this.load(evt, handler));
         break;
       case 'execute':
-        View.on(this._document.querySelector('#controls button[name="next"]'), 'click', handler);
+        View.on(this._document.querySelector('#controls button[name="step"]'), 'click', handler);
         break;
       case 'run':
         View.on(this._document.querySelector('#controls button[name="run"]'), 'click', handler);
@@ -72,7 +72,7 @@ export default class View {
         break;
       case 'onKeyDownProgramLine':
         View.on(this.$lineInput, 'keydown', (evt) => {
-          if (evt.keyCode === 13) handler(this.$lineInput.value);
+          if (evt.keyCode === c.ENTER_KEYCODE) handler(this.$lineInput.value);
         });
         break;
     }
@@ -150,6 +150,10 @@ export default class View {
       $programUl.appendChild($li);
     }
     this.$programInstrs = this._document.querySelectorAll('#program li');
+
+    // Strings
+    this.$runButton.textContent = s.RUN;
+    this._document.querySelector('#controls button[name="step"]').textContent = s.STEP;
   }
 
   /**
