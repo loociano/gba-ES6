@@ -12,7 +12,9 @@ describe('Controller', () => {
   beforeEach( () => {
     model = {
       _line: 0,
+      _running: false,
       execute: function(callback) { callback.call(this); },
+      run: function() { this._running = true; },
       setFlag: function(flag) { flags[flag] = true; },
       getMemory: function() {},
       getInstrs: function(offset, length) {},
@@ -55,6 +57,7 @@ describe('Controller', () => {
       assert.equal(bindings['setFlag'], true);
       assert.equal(bindings['load'], true);
       assert.equal(bindings['execute'], true);
+      assert.equal(bindings['run'], true);
       assert.equal(bindings['onProgramScroll'], true);
       assert.equal(bindings['setProgramLine'], true);
       assert.equal(bindings['onKeyDownProgramLine'], true);
@@ -86,6 +89,10 @@ describe('Controller', () => {
       assert.equal(renderings['currentInstr'], true);
       assert.equal(renderings['cpu'], true);
       assert.equal(renderings['memory'], true);
+    });
+    it('should run', () => {
+      controller.run();
+      assert.isTrue(model._running);
     });
   });
   describe('Program rendering on scroll up/down', () => {

@@ -16,6 +16,7 @@ export default class Controller {
     this._view.bind('setFlag', (flag, value) => this.setFlag(flag, value) );
     this._view.bind('load', (bios) => this.load(bios) );
     this._view.bind('execute', () => this.execute() );
+    this._view.bind('run', () => this.run() )
     this._view.bind('onProgramScroll', (delta) => this.onProgramScroll(delta));
     this._view.bind('setProgramLine', (line) => this.setProgramLine(line) );
     this._view.bind('onKeyDownProgramLine', (line) => this.setProgramLine(line) );
@@ -41,6 +42,10 @@ export default class Controller {
    */
   execute() {
     this._model.execute( (registers) => this.renderState(registers) );
+  }
+
+  run() {
+    this._model.run();
   }
 
   /**

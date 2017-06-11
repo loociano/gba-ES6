@@ -11,7 +11,9 @@ describe('Model', () => {
     getRegisters: function() { return this._r; }
   };
   const gbaMock = {
-    getCPU: function() { return cpuMock; }
+    _running: false,
+    getCPU: function() { return cpuMock; },
+    start: function() { this._running = true; }
   };
   beforeEach( () => {
     model = new Model(gbaMock);
@@ -31,5 +33,9 @@ describe('Model', () => {
     model.execute(function (registers) {
       assert.deepEqual(registers, {r1: 1, pc: 15});
     });
+  });
+  it('should run', () => {
+    model.run();
+    assert.isTrue(gbaMock._running);
   });
 });

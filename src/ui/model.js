@@ -53,6 +53,10 @@ export default class Model {
     }
   }
 
+  run() {
+    this._gba.start();
+  }
+
   /**
    * @param {Object} oldRegisters
    * @return {Object} updatedRegisters

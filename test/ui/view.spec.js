@@ -93,7 +93,7 @@ describe('View', () => {
     });
   });
   describe('Controls View', () => {
-    it('should disable buttons', () => {
+    it('should render buttons', () => {
       view.render('controls', {run: false, next: false});
       assert.isTrue($runButton.disabled);
       assert.isTrue($nextButton.disabled);
@@ -109,6 +109,12 @@ describe('View', () => {
       view.bind('execute', handler);
       $nextButton.click();
       assert.isTrue(called);
+    });
+    it('should bind Run button', () => {
+      let clicked = false;
+      view.bind('run', () => { clicked = true; });
+      $runButton.click();
+      assert.isTrue(clicked);
     });
   });
   describe('CPU view',  () => {

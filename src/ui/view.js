@@ -51,6 +51,9 @@ export default class View {
       case 'execute':
         View.on(this._document.querySelector('#controls button[name="next"]'), 'click', handler);
         break;
+      case 'run':
+        View.on(this._document.querySelector('#controls button[name="run"]'), 'click', handler);
+        break;
       case 'onProgramScroll':
         View.on(this.$program, 'wheel', (evt) => View.onMouseWheel(evt, handler));
         break;
