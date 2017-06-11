@@ -6,7 +6,7 @@ import * as c from '../../src/constants';
 
 describe('View', () => {
   let dom, view;
-  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flag, $nextButton;
+  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flag, $nextButton, $runButton;
   const mockReader = {
     /**
      * @param {Array} file
@@ -49,7 +49,7 @@ describe('View', () => {
       <div id="program"><ul></ul><input name="programLine"/><button name="setProgramLine"></button></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
-      <div id="controls"><button name="next">next</button></div>
+      <div id="controls"><button name="run">run</button><button name="next">next</button></div>
     `);
     $load = dom.window.document.getElementById('load');
     $program = dom.window.document.getElementById('program');
@@ -59,8 +59,8 @@ describe('View', () => {
     $memory = dom.window.document.querySelector('#memory textarea');
     $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
     $nextButton = dom.window.document.querySelector('#controls button[name="next"]');
+    $runButton = dom.window.document.querySelector('#controls button[name="run"]');
     $registers = dom.window.document.querySelectorAll('#cpu span');
-
     view = new View(dom.window, mockReader);
     view.mockKeyPress = function($elt, key) {
       const event = dom.window.document.createEvent('Event');
@@ -92,7 +92,15 @@ describe('View', () => {
       assert.isTrue(called);
     });
   });
-  describe('Execution view', () => {
+  describe('Controls View', () => {
+    it('should disable buttons', () => {
+      view.render('controls', {run: false, next: false});
+      assert.isTrue($runButton.disabled);
+      assert.isTrue($nextButton.disabled);
+      view.render('controls', {run: true, next: true});
+      assert.isFalse($runButton.disabled);
+      assert.isFalse($nextButton.disabled);
+    });
     it('should bind Next button', () => {
       let called = false;
       const handler = function handler() {

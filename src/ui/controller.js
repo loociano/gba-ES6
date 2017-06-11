@@ -21,7 +21,8 @@ export default class Controller {
     this._view.bind('onKeyDownProgramLine', (line) => this.setProgramLine(line) );
     // Renderings
     this.renderProgram();
-    this._view.render('memory', this._model.getMemory());
+    this._renderMemory();
+    this._view.render('controls', {'run': false, 'next': false});
   }
 
   /**
@@ -29,7 +30,10 @@ export default class Controller {
    */
   load(bios) {
     this._model.setBIOS(bios);
-    this._model.boot( (registers) => this.renderState(registers) );
+    this._model.boot( (registers) => {
+      this._view.render('controls', {'run': true, 'next': true});
+      this.renderState(registers);
+    });
   }
 
   /**
@@ -52,6 +56,7 @@ export default class Controller {
    */
   renderState(registers) {
     this.renderProgram();
+    this._renderMemory();
     this._view.render('cpu', registers);
   }
 
@@ -93,5 +98,12 @@ export default class Controller {
       programLine = c.MEMORY_SIZE + c.EXT_MEMORY_SIZE - c.INSTR_ON_UI*c.ARM_INSTR_LENGTH; // default to max
     }
     this._model.setProgramLine(programLine, () => this.renderProgram());
+  }
+
+  /**
+   * @private
+   */
+  _renderMemory() {
+    this._view.render('memory', this._model.getMemory());
   }
 }

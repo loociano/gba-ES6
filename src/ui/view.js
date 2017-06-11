@@ -95,12 +95,27 @@ export default class View {
     switch(command) {
       case 'cpu':
         return this._renderCpu(args);
+      case 'controls':
+        return this._renderControls(args);
       case 'currentInstr':
         return this._highlightCurrentInstr(args.offset, args.pc);
       case 'memory':
         return this._renderMemoryPage(args);
       case 'program':
         return this._renderProgramPage(args.instrs, args.offset);
+    }
+  }
+
+  /**
+   * @param args
+   * @private
+   */
+  _renderControls(args) {
+    for(let prop in args) {
+      const button = this._document.querySelector(`#controls button[name="${prop}"]`);
+      if (button){
+        button.disabled = !args[prop];
+      }
     }
   }
 

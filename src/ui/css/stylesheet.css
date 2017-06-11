@@ -74,13 +74,13 @@ ul {
     color: white;
     cursor: default;
 }
-#program li:hover, #cpu li:hover, #stack li:hover {
+#program li:hover, #stack li:hover {
     background-color: #ccc;
 }
 #program ul {
     padding: 0;
 }
-#program ul, #cpu ul, #stack ul, #flags label, #flags input[type="checkbox"] {
+#program ul, #stack ul, #flags li, #flags label, #flags input[type="checkbox"] {
     cursor: pointer;
 }
 #screen canvas {

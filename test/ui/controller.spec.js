@@ -6,12 +6,13 @@ import * as c from '../../src/constants';
 describe('Controller', () => {
   let model, view, controller;
   let renderings = {};
-  let renderArgs;
+  let renderArgs = {};
   let bindings = {};
   let flags = {};
   beforeEach( () => {
     model = {
       _line: 0,
+      execute: function(callback) { callback.call(this); },
       setFlag: function(flag) { flags[flag] = true; },
       getMemory: function() {},
       getInstrs: function(offset, length) {},
@@ -21,7 +22,11 @@ describe('Controller', () => {
         this._line = line;
         if (typeof callback === 'function') callback.call(this, line);
       },
-      getProgramLine: function() { return this._line; }
+      getProgramLine: function() { return this._line; },
+      setBIOS: function() {},
+      boot: function(callback) {
+        if (typeof callback === 'function') callback.call(this);
+      }
     };
     view = {
       bind: function(what) {
@@ -29,7 +34,7 @@ describe('Controller', () => {
       },
       render: function(what, args) {
         renderings[what] = true;
-        renderArgs = args;
+        renderArgs[what] = args;
       },
       onScrollProgram: function() {}
     };
@@ -42,6 +47,8 @@ describe('Controller', () => {
       controller = new Controller(model, view);
       assert.equal(renderings['program'], true);
       assert.equal(renderings['memory'], true);
+      assert.equal(renderings['controls'], true);
+      assert.deepEqual(renderArgs['controls'], { 'run': false, 'next': false });
     });
     it('should bind UI elements to actions', () => {
       controller = new Controller(model, view);
@@ -65,6 +72,20 @@ describe('Controller', () => {
       assert.equal(flags['N'], true);
       assert.equal(flags['Z'], true);
       assert.equal(flags['C'], undefined);
+    });
+  });
+  describe('Program execution', () => {
+    it('should enable controls on program load', () => {
+      controller.load(new Uint8Array(1));
+      assert.equal(renderings['controls'], true);
+      assert.deepEqual(renderArgs['controls'], { 'run': true, 'next': true });
+    });
+    it('should render all on execution', () => {
+      controller.execute();
+      assert.equal(renderings['program'], true);
+      assert.equal(renderings['currentInstr'], true);
+      assert.equal(renderings['cpu'], true);
+      assert.equal(renderings['memory'], true);
     });
   });
   describe('Program rendering on scroll up/down', () => {
@@ -112,7 +133,7 @@ describe('Controller', () => {
 
       assert.equal(renderings['program'], true);
       assert.equal(renderings['currentInstr'], true);
-      assert.equal(renderArgs.offset, 0x10);
+      assert.equal(renderArgs['currentInstr'].offset, 0x10);
     });
     it('should validate program line', () => {
       controller.setProgramLine(-1);
@@ -125,16 +146,16 @@ describe('Controller', () => {
 
       assert.equal(renderings['program'], true);
       assert.equal(renderings['currentInstr'], true);
-      assert.equal(renderArgs.offset, 8);
+      assert.equal(renderArgs['currentInstr'].offset, 8);
 
       controller.setProgramLine('b');
-      assert.equal(renderArgs.offset, 8);
+      assert.equal(renderArgs['currentInstr'].offset, 8);
 
       controller.setProgramLine('c');
-      assert.equal(renderArgs.offset, 0xc);
+      assert.equal(renderArgs['currentInstr'].offset, 0xc);
 
       controller.setProgramLine('c');
-      assert.equal(renderArgs.offset, 0xc);
+      assert.equal(renderArgs['currentInstr'].offset, 0xc);
     });
     it('should render max program line', () => {
       controller.setProgramLine('0fffffb0'); // max value = max memory - 20 lines
