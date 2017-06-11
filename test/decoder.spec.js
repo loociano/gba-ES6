@@ -25,6 +25,10 @@ describe('Decoder', () => {
     const pc = 0;
     assert.deepEqual(Decoder.decode(pc, 0xe5910300), [pc, 'ldr', 'r0', 'r1', true/*Pre?*/, 0x300]);
     assert.equal(Decoder.decodeToString(pc, 0xe5910300), 'ldr r0,[r1,0x0300]');
+
+    // using pc as register
+    assert.deepEqual(Decoder.decode(pc, 0xe59ff300), [pc, 'ldr', 'pc', 'pc', true/*Pre?*/, 0x300]);
+    assert.equal(Decoder.decodeToString(pc, 0xe59ff300), 'ldr pc,[pc,0x0300]');
   });
   it('should decode AND', () => {
     const pc = 0;

@@ -127,6 +127,8 @@ export default class Decoder {
     if ((word >>> 20 & 1) === 1) op = 'ldr';
     Rn = `r${word >>> 16 & 0xf}`;
     Rd = `r${word >>> 12 & 0xf}`;
+    if (Rn === 'r15') Rn = 'pc';
+    if (Rd === 'r15') Rd = 'pc';
     if (!I) {
       offset = word & 0xfff;
     } else {

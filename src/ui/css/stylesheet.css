@@ -92,6 +92,9 @@ ul {
     vertical-align: top;
     text-align: center;
 }
+#controls button {
+    width: 50px;
+}
 #cpu ul span.updated {
     background-color: yellow;
 }

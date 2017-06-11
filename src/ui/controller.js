@@ -2,6 +2,7 @@ import View from './view';
 import Utils from '../utils';
 import Model from './model';
 import * as c from '../constants';
+import AnimationFrame from './animationFrame';
 
 export default class Controller {
 
@@ -45,7 +46,11 @@ export default class Controller {
   }
 
   run() {
-    this._model.run();
+    this._model.toggleRunning( (running) => {
+      this._view.render('running', running);
+      this._view.requestFrame(running);
+      AnimationFrame.frame( () => this.execute() );
+    });
   }
 
   /**

@@ -10,11 +10,15 @@ describe('Controller', () => {
   let bindings = {};
   let flags = {};
   beforeEach( () => {
+    global.window = {
+      requestAnimationFrame: function() {}
+    };
     model = {
       _line: 0,
       _running: false,
-      execute: function(callback) { callback.call(this); },
-      run: function() { this._running = true; },
+      execute: function(callback) {
+        callback.call(this);
+      },
       setFlag: function(flag) { flags[flag] = true; },
       getMemory: function() {},
       getInstrs: function(offset, length) {},
@@ -28,9 +32,14 @@ describe('Controller', () => {
       setBIOS: function() {},
       boot: function(callback) {
         if (typeof callback === 'function') callback.call(this);
+      },
+      toggleRunning: function(callback) {
+        this._running = !this._running;
+        if (typeof callback === 'function') callback.call(this, this._running);
       }
     };
     view = {
+      _running: false,
       bind: function(what) {
         bindings[what] = true;
       },
@@ -38,7 +47,9 @@ describe('Controller', () => {
         renderings[what] = true;
         renderArgs[what] = args;
       },
-      onScrollProgram: function() {}
+      onScrollProgram: function() {},
+      frame: function() { this._running = true; },
+      requestFrame: function() {}
     };
     controller = new Controller(model, view);
     renderings = {};
@@ -90,9 +101,17 @@ describe('Controller', () => {
       assert.equal(renderings['cpu'], true);
       assert.equal(renderings['memory'], true);
     });
-    it('should run', () => {
+    it('should run and pause', () => {
       controller.run();
       assert.isTrue(model._running);
+      assert.equal(renderings['running'], true);
+      assert.equal(renderArgs['running'], true);
+
+      renderings = {};
+      controller.run();
+      assert.isFalse(model._running);
+      assert.equal(renderings['running'], true);
+      assert.equal(renderArgs['running'], false);
     });
   });
   describe('Program rendering on scroll up/down', () => {

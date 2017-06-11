@@ -3,6 +3,8 @@ import {assert} from 'chai';
 import {JSDOM} from 'jsdom';
 import View from '../../src/ui/view';
 import * as c from '../../src/constants';
+import * as s from '../../src/ui/strings';
+import AnimationFrame from '../../src/ui/animationFrame';
 
 describe('View', () => {
   let dom, view;
@@ -49,7 +51,7 @@ describe('View', () => {
       <div id="program"><ul></ul><input name="programLine"/><button name="setProgramLine"></button></div>
       <div id="memory"><textarea></textarea></div>
       <div id="flags"><input type="checkbox"/></div>
-      <div id="controls"><button name="run">run</button><button name="next">next</button></div>
+      <div id="controls"><button name="run">Run</button><button name="next">Next</button></div>
     `);
     $load = dom.window.document.getElementById('load');
     $program = dom.window.document.getElementById('program');
@@ -69,8 +71,14 @@ describe('View', () => {
       $elt.dispatchEvent(event);
     };
   });
-  it('should construct', () => {
-    assert.throws( () => new View(undefined), Error);
+  describe('Initialization', () => {
+    it('should not construct without inputs', () => {
+      assert.throws(() => new View(undefined), Error);
+      assert.throws(() => new View(dom.window, undefined), Error);
+    });
+    it('should attach animationFrame.frame to window object', () => {
+      assert.equal(view._window.frame, AnimationFrame.frame);
+    });
   });
   describe('Menu', () => {
     it('should bind load', () => {
@@ -115,6 +123,13 @@ describe('View', () => {
       view.bind('run', () => { clicked = true; });
       $runButton.click();
       assert.isTrue(clicked);
+    });
+    it('should render running', () => {
+      assert.equal($runButton.textContent, s.RUN);
+      view.render('running', true);
+      assert.equal($runButton.textContent, s.PAUSE);
+      view.render('running', false);
+      assert.equal($runButton.textContent, s.RUN);
     });
   });
   describe('CPU view',  () => {

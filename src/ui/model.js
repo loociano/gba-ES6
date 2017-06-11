@@ -11,6 +11,14 @@ export default class Model {
     this._gba = GBA;
     this._flags = {N: false, Z: false, C: false, V: false, I: false, F: false, T: false, Q: false};
     this._programLine = 0;
+    this._running = false;
+  }
+
+  toggleRunning(callback) {
+    this._running = !this._running;
+    if (typeof callback === 'function') {
+      callback.call(this, this._running);
+    }
   }
 
   getProgramLine() {

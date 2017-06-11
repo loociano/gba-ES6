@@ -1,6 +1,8 @@
 import Utils from '../utils';
 import Decoder from '../decoder';
 import * as c from '../constants';
+import * as s from './strings';
+import AnimationFrame from './animationFrame';
 
 export default class View {
 
@@ -20,7 +22,13 @@ export default class View {
     this.$programInstrs = null; // will hold all the instr li
     this.$lineInput = this._document.querySelector('input[name="programLine"]');
     this.$registers = this._document.querySelectorAll('#cpu span');
+    this.$runButton = this._document.querySelector('#controls button[name="run"]');
     this._initDOM();
+    this.requestFrame(true);
+  }
+
+  requestFrame(request) {
+    this._window.frame = request ? AnimationFrame.frame : AnimationFrame.stop;
   }
 
   /**
@@ -106,7 +114,17 @@ export default class View {
         return this._renderMemoryPage(args);
       case 'program':
         return this._renderProgramPage(args.instrs, args.offset);
+      case 'running':
+        return this._renderRunning(args);
     }
+  }
+
+  /**
+   * @param {boolean} running
+   * @private
+   */
+  _renderRunning(running) {
+    this.$runButton.textContent = running ? s.PAUSE : s.RUN;
   }
 
   /**
