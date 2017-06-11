@@ -8,7 +8,6 @@ describe('Controller', () => {
   let renderings = {};
   let renderArgs = {};
   let bindings = {};
-  let flags = {};
   beforeEach( () => {
     global.window = {
       requestAnimationFrame: function() {}
@@ -16,10 +15,12 @@ describe('Controller', () => {
     model = {
       _line: 0,
       _running: false,
+      _flags : { N: false, Z: false, C: false },
       execute: function(callback) {
         callback.call(this);
       },
-      setFlag: function(flag) { flags[flag] = true; },
+      setFlag: function(flag, value) { this._flags[flag] = value; },
+      getFlag: function(flag) { return this._flags[flag]; },
       getMemory: function() {},
       getInstrs: function(offset, length) {},
       getPC: function() {},
@@ -83,9 +84,9 @@ describe('Controller', () => {
     it('should read/write flags', () => {
       controller.setFlag('N', true);
       controller.setFlag('Z', true);
-      assert.equal(flags['N'], true);
-      assert.equal(flags['Z'], true);
-      assert.equal(flags['C'], undefined);
+      assert.equal(model.getFlag('N'), true);
+      assert.equal(model.getFlag('Z'), true);
+      assert.equal(model.getFlag('C'), false);
     });
   });
   describe('Program execution', () => {

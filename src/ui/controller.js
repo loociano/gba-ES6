@@ -62,7 +62,7 @@ export default class Controller {
    * @param value
    */
   setFlag(flag, value) {
-    this._model.setFlag(flag, value, null);
+    this._model.setFlag(flag, value);
   }
 
   /**

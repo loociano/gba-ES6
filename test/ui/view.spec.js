@@ -8,7 +8,7 @@ import AnimationFrame from '../../src/ui/animationFrame';
 
 describe('View', () => {
   let dom, view;
-  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flag, $stepButton, $runButton;
+  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flagN, $stepButton, $runButton;
   const mockReader = {
     /**
      * @param {Array} file
@@ -50,7 +50,7 @@ describe('View', () => {
        </ul></div>
       <div id="program"><ul></ul><input name="programLine"/><button name="setProgramLine"></button></div>
       <div id="memory"><textarea></textarea></div>
-      <div id="flags"><input type="checkbox"/></div>
+      <div id="flags"><input type="checkbox" id="N"/></div>
       <div id="controls"><button name="run"></button><button name="step"></button></div>
     `);
     $load = dom.window.document.getElementById('load');
@@ -59,7 +59,7 @@ describe('View', () => {
     $setProgramLine = dom.window.document.querySelector('button[name="setProgramLine"]');
     $programLineInput = dom.window.document.querySelector('input[name="programLine"]');
     $memory = dom.window.document.querySelector('#memory textarea');
-    $flag = dom.window.document.querySelector('#flags input[type="checkbox"]');
+    $flagN = dom.window.document.querySelector('#flags #N');
     $stepButton = dom.window.document.querySelector('#controls button[name="step"]');
     $runButton = dom.window.document.querySelector('#controls button[name="run"]');
     $registers = dom.window.document.querySelectorAll('#cpu span');
@@ -134,13 +134,16 @@ describe('View', () => {
   });
   describe('CPU view',  () => {
     it('should bind flag', () => {
-      let called = false;
-      const handler = function handler() {
-        called = true;
-      };
-      view.bind('setFlag', handler);
-      $flag.click();
-      assert.isTrue(called);
+      let flag, value;
+      view.bind('setFlag', (f, v) => {
+        flag = f;
+        value = v;
+      });
+      $flagN.click();
+      assert.equal(flag, 'N');
+      assert.equal(value, true);
+      $flagN.click();
+      assert.equal(value, false);
     });
     it('should render registers', () => {
       const registers = { r0: 0, r1: 1, r2: 2, r3: 3, r4: 4, r5: 5, r6: 6, r7: 7, r8: 8, r9: 9, r10: 10, r11: 11, r12: 12, r13: 13, r14: 14, pc: 15, cpsr: 16, sprs: 17};

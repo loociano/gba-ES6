@@ -3,17 +3,23 @@ import MMU from '../mmu';
 
 export default class Model {
 
+  static isValidAddress(address) {
+    return MMU.isValidAddress(address);
+  }
+
   /**
    * @param {GBA} GBA
    */
   constructor(GBA) {
     if (!GBA) throw new Error('MissingGBA');
     this._gba = GBA;
-    this._flags = {N: false, Z: false, C: false, V: false, I: false, F: false, T: false, Q: false};
     this._programLine = 0;
     this._running = false;
   }
 
+  /**
+   * @param {function} callback
+   */
   toggleRunning(callback) {
     this._running = !this._running;
     if (typeof callback === 'function') {
@@ -21,19 +27,22 @@ export default class Model {
     }
   }
 
+  /**
+   * @return {number} programLine
+   */
   getProgramLine() {
     return this._programLine;
   }
 
+  /**
+   * @param line
+   * @param {function} callback
+   */
   setProgramLine(line, callback) {
     this._programLine = line;
     if (typeof callback === 'function') {
       callback.call(this, this._programLine);
     }
-  }
-
-  static isValidAddress(address) {
-    return MMU.isValidAddress(address);
   }
 
   /**
@@ -61,26 +70,6 @@ export default class Model {
     }
   }
 
-  run() {
-    this._gba.start();
-  }
-
-  /**
-   * @param {Object} oldRegisters
-   * @return {Object} updatedRegisters
-   * @private
-   */
-  _updatedRegisters(oldRegisters) {
-    const newRegisters = this.getRegisters();
-    const updatedRegisters = {};
-    for(let r in oldRegisters) {
-      if (oldRegisters[r] !== newRegisters[r]){
-        updatedRegisters[r] = newRegisters[r];
-      }
-    }
-    return updatedRegisters;
-  }
-
   /**
    * @param {Uint8Array} bios
    */
@@ -91,12 +80,19 @@ export default class Model {
   /**
    * @param {string} flag
    * @param {boolean} value
-   * @param {function} callback
    */
-  setFlag(flag, value, callback) {
-    this._flags[flag] = value;
-    if (typeof callback === 'function') {
-      callback.call(this, {flag, value} );
+  setFlag(flag, value) {
+    const cpu = this._gba.getCPU();
+    const nzcvq = this._gba.getCPU().getNZCVQ();
+    const ift = this._gba.getCPU().getIFT();
+    const bit = value ? 1 : 0;
+    switch(flag) {
+      case 'N': case 'Z': case 'C': case 'V': case 'Q':
+        return cpu.setNZCVQ(nzcvq & (~(1 << c.FLAG_BITS[flag]) & 0x1f) | (bit << c.FLAG_BITS[flag]));
+      case 'I': case 'F': case 'T':
+        return cpu.setIFT(ift & (~(1 << c.FLAG_BITS[flag]) & 7) | (bit << c.FLAG_BITS[flag]));
+      default:
+        throw new Error(`SetUnknownFlag ${flag}`);
     }
   }
 
@@ -105,7 +101,18 @@ export default class Model {
    * @return {boolean} value
    */
   getFlag(flag) {
-    return this._flags[flag];
+    const cpu = this._gba.getCPU();
+    const nzcvq = cpu.getNZCVQ();
+    const ift = cpu.getIFT();
+
+    switch(flag) {
+      case 'N': case 'Z': case 'C': case 'V': case 'Q':
+        return (nzcvq >>> c.FLAG_BITS[flag]) === 1;
+      case 'I': case 'F': case 'T':
+        return (ift >>> c.FLAG_BITS[flag]) === 1;
+      default:
+        throw new Error(`GetUnknownFlag ${flag}`);
+    }
   }
 
   /**
@@ -134,5 +141,22 @@ export default class Model {
    */
   getPC() {
     return this._gba.getCPU().getPC();
+  }
+
+
+  /**
+   * @param {Object} oldRegisters
+   * @return {Object} updatedRegisters
+   * @private
+   */
+  _updatedRegisters(oldRegisters) {
+    const newRegisters = this.getRegisters();
+    const updatedRegisters = {};
+    for(let r in oldRegisters) {
+      if (oldRegisters[r] !== newRegisters[r]){
+        updatedRegisters[r] = newRegisters[r];
+      }
+    }
+    return updatedRegisters;
   }
 }

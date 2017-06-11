@@ -39,12 +39,6 @@ describe('ARM7TDMI tests', () => {
       cpu[`setR${r}`] = (word) => { cpu._r[`r${r}`] = word; };
       cpu[`getR${r}`] = () => cpu._r[`r${r}`];
     }
-    /**
-     * @param {number} word
-     */
-    cpu.setCPSR = function(word) {
-      this._r.cpsr = word;
-    };
     cpu.getFetched = function() {
       return this._fetched;
     };
@@ -67,10 +61,16 @@ describe('ARM7TDMI tests', () => {
       assert.equal(cpu.readWord(0x100), 0x04030201);
     });
   });
-  describe('Registrers', () => {
+  describe('Registrers and flags', () => {
     it('should read NZCVQ flags', () => {
-      cpu.setCPSR(0xf8000000);
+      cpu.setNZCVQ(0b11111);
       assert.equal(cpu.getNZCVQ(), 0b11111);
+      cpu.setNZCVQ(0);
+      assert.equal(cpu.getNZCVQ(), 0);
+      cpu.setIFT(0b111);
+      assert.equal(cpu.getIFT(), 0b111);
+      cpu.setIFT(0);
+      assert.equal(cpu.getIFT(), 0);
     });
   });
   describe('Instruction pipeline', () => {

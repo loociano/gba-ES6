@@ -39,6 +39,18 @@ export default class ARM7TDMI {
     return this._r.cpsr >>> 27;
   }
 
+  setNZCVQ(bits) {
+    this._r.cpsr = (this._r.cpsr & 0x07ffffff | (bits << 27)) >>> 0;
+  }
+
+  getIFT() {
+    return this._r.cpsr >>> 5;
+  }
+
+  setIFT(bits) {
+    this._r.cpsr = (this._r.cpsr & 0xffffff1f | (bits << 5)) >>> 0;
+  }
+
   /**
    * @param {Uint8Array} BIOS
    * @public
