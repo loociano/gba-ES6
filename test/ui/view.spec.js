@@ -8,7 +8,7 @@ import AnimationFrame from '../../src/ui/animationFrame';
 
 describe('View', () => {
   let dom, view;
-  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flagN, $stepButton, $runButton;
+  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flags, $flagLines, $flagN, $stepButton, $runButton;
   const mockReader = {
     /**
      * @param {Array} file
@@ -50,7 +50,15 @@ describe('View', () => {
        </ul></div>
       <div id="program"><ul></ul><input name="programLine"/><button name="setProgramLine"></button></div>
       <div id="memory"><textarea></textarea></div>
-      <div id="flags"><input type="checkbox" id="N"/></div>
+      <div id="flags">
+        <li><input type="checkbox" id="N"/></li>
+        <li><input type="checkbox" id="Z"/></li>
+        <li><input type="checkbox" id="C"/></li>
+        <li><input type="checkbox" id="V"/></li>
+        <li><input type="checkbox" id="I"/></li>
+        <li><input type="checkbox" id="F"/></li>
+        <li><input type="checkbox" id="T"/></li>
+        </div>
       <div id="controls"><button name="run"></button><button name="step"></button></div>
     `);
     $load = dom.window.document.getElementById('load');
@@ -60,6 +68,8 @@ describe('View', () => {
     $programLineInput = dom.window.document.querySelector('input[name="programLine"]');
     $memory = dom.window.document.querySelector('#memory textarea');
     $flagN = dom.window.document.querySelector('#flags #N');
+    $flags = dom.window.document.querySelectorAll('#flags input[type="checkbox"]');
+    $flagLines = dom.window.document.querySelectorAll('#flags li');
     $stepButton = dom.window.document.querySelector('#controls button[name="step"]');
     $runButton = dom.window.document.querySelector('#controls button[name="run"]');
     $registers = dom.window.document.querySelectorAll('#cpu span');
@@ -146,10 +156,8 @@ describe('View', () => {
       assert.equal(value, false);
     });
     it('should render registers', () => {
-      const registers = { r0: 0, r1: 1, r2: 2, r3: 3, r4: 4, r5: 5, r6: 6, r7: 7, r8: 8, r9: 9, r10: 10, r11: 11, r12: 12, r13: 13, r14: 14, pc: 15, cpsr: 16, sprs: 17};
-
+      const registers = { r0: 0, r1: 1, r2: 2, r3: 3, r4: 4, r5: 5, r6: 6, r7: 7, r8: 8, r9: 9, r10: 10, r11: 11, r12: 12, r13: 13, r14: 14, pc: 15, cpsr: 0, sprs: 17};
       view.render('cpu', registers);
-
       assert.equal($registers.length, 18);
       assert.equal($registers[0].innerText, '00000000');
       assert.equal($registers[1].innerText, '00000001');
@@ -167,8 +175,37 @@ describe('View', () => {
       assert.equal($registers[13].innerText, '0000000d');
       assert.equal($registers[14].innerText, '0000000e');
       assert.equal($registers[15].innerText, '0000000f');
-      assert.equal($registers[16].innerText, '00000010');
+      assert.equal($registers[16].innerText, '00000000');
       assert.equal($registers[17].innerText, '00000011');
+      $flags.forEach( ($flag) => assert.equal($flag.checked, false) );
+
+      view.render('cpu', { cpsr: 0xf00000e0 } /* all flags set */);
+      assert.equal($registers[16].innerText, 'f00000e0');
+      for(let f = 0; f < $flags.length; f++) {
+        const $flag = $flags[f];
+        const $flagLine = $flagLines[f];
+        assert.equal($flag.checked, true);
+        assert.equal($flagLine.className, 'updated');
+      }
+
+      view.render('cpu', { cpsr: 0x300000e0 } /* reset nz */);
+      assert.equal($registers[16].innerText, '300000e0');
+      for(let f = 0; f < $flags.length; f++) {
+        const $flag = $flags[f];
+        const $flagLine = $flagLines[f];
+        if ($flag.id === 'N' || $flag.id === 'Z') {
+          assert.equal($flag.checked, false);
+          assert.equal($flagLine.className, 'updated');
+        } else {
+          assert.equal($flag.checked, true);
+          assert.equal($flagLine.className, '');
+        }
+      }
+
+      view.render('cpu', {} /* no flag changes */);
+      for(let f = 0; f < $flags.length; f++) {
+        assert.equal($flagLines[f].className, '');
+      }
     });
     it('should highlight modified registers', () => {
       const registers = { r1: 0xa, pc: 0xb};

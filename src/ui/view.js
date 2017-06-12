@@ -23,6 +23,8 @@ export default class View {
     this.$lineInput = this._document.querySelector('input[name="programLine"]');
     this.$registers = this._document.querySelectorAll('#cpu span');
     this.$runButton = this._document.querySelector('#controls button[name="run"]');
+    this.$flagLines = this._document.querySelectorAll('#flags li');
+    this.$flags = this._document.querySelectorAll('#flags input[type="checkbox"]');
     this._initDOM();
     this.requestFrame(true);
   }
@@ -191,6 +193,7 @@ export default class View {
           } else {
             this.$registers[r].className = '';
           }
+          this._renderFlags(registers['cpsr']);
           break;
         case 17:
           if (registers['sprs'] !== undefined) {
@@ -208,6 +211,32 @@ export default class View {
             this.$registers[r].className = '';
           }
       }
+    }
+  }
+
+  /**
+   * @param {number} cpsr
+   * @private
+   */
+  _renderFlags(cpsr) {
+    if (cpsr === undefined) {
+      return this.$flagLines.forEach( ($flagLine) => $flagLine.className = '');
+    }
+    const flagBooleans = {
+      N: (cpsr >>> 31) === 1,
+      Z: (cpsr >>> 30 & 1) === 1,
+      C: (cpsr >>> 29 & 1) === 1,
+      V: (cpsr >>> 28 & 1) === 1,
+      I: (cpsr >>> 7 & 1) === 1,
+      F: (cpsr >>> 6 & 1) === 1,
+      T: (cpsr >>> 5 & 1) === 1
+    };
+    for(let f = 0; f < this.$flags.length; f++){
+      const $flag = this.$flags[f];
+      const $flagLine = this.$flagLines[f];
+      const newValue = flagBooleans[`${$flag.id}`];
+      $flagLine.className = $flag.checked !== newValue ? 'updated' : '';
+      $flag.checked = newValue;
     }
   }
 

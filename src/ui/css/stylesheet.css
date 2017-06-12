@@ -83,6 +83,9 @@ ul {
 #program ul, #stack ul, #flags li, #flags label, #flags input[type="checkbox"] {
     cursor: pointer;
 }
+#flags input[type="checkbox"] {
+    vertical-align: middle;
+}
 #screen canvas {
     width: 480px;
     height: 320px;
@@ -95,6 +98,6 @@ ul {
 #controls button {
     width: 50px;
 }
-#cpu ul span.updated {
+#cpu span.updated, #flags li.updated {
     background-color: yellow;
 }
