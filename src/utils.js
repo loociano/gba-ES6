@@ -17,8 +17,13 @@ export default class Utils {
    * @return {number} signed byte (two's complement).
    */
   static toSigned(unsigned) {
-    const mask = 1 << (unsigned.toString(16).replace(/^(.(..)*)$/, "0$1").length*4/*bits/digit*/ - 1);
-    return -(unsigned & mask) + (unsigned & ~mask);
+    const mask = 1 << (unsigned.toString(16).replace(/^(.(..)*)$/, "0$1").length*4/*bits/digit*/ - 1) >>> 0;
+    return -((unsigned & mask) >>> 0) + (unsigned & ~mask);
+  }
+
+  static toUnsigned(signed) {
+    if (signed < 0) return 0xffffffff + signed + 1;
+    return signed;
   }
 
   /**

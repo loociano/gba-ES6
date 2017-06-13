@@ -1,6 +1,7 @@
 import Logger from './logger';
 import * as c from './constants';
 import Decoder from './decoder';
+import Utils from './utils';
 
 /**
  * ARM7TDMI chip.
@@ -144,14 +145,20 @@ export default class ARM7TDMI {
   }
 
   /**
-   * @param {number} Rd
-   * @param {number} value Rn
+   * @param {string} Rd
+   * @param {string} Rn
    * @param {number} Op2
    * @private
    */
   _cmp(Rd/*unused*/, Rn, Op2) {
-    const diff = Rn - Op2;
-    this._setZ(diff);
+    const sRn = Utils.toSigned(this._r[Rn]);
+    const diff = sRn - Op2;
+    this._setN(Utils.toSigned(diff) < 0);
+    this._setZ(diff === 0);
+    // For a subtraction, including the comparison instruction CMP, C is set to 0 if the subtraction produced a borrow
+    // (that is, an unsigned underflow), and to 1 otherwise.
+    this._setC(!(Op2 > this._r[Rn]));
+    this._setV(diff < -2147483648);
   }
 
   /**
@@ -162,7 +169,7 @@ export default class ARM7TDMI {
    */
   _mov(Rd, Rn/*unused*/, Op2) {
     this._r[Rd] = Op2;
-    this._setZ(Op2);
+    this._setZ(Op2 === 0);
   }
 
   /**
@@ -188,19 +195,39 @@ export default class ARM7TDMI {
    */
   _teq(Rd/*unused*/, Rn, Op2) {
     const xor = (this._r[Rn] ^ Op2) >>> 0;
-    this._setZ(xor);
+    this._setZ(xor === 0);
+  }
+
+  /**
+   * @param {boolean} set
+   * @private
+   */
+  _setN(set) {
+    set ? this._r.cpsr |= 0x80000000 : this._r.cpsr &= 0x7fffffff;
   }
 
   /**
    * Sets flag Z according to value
-   * @param {number} value
+   * @param {boolean} set
    * @private
    */
-  _setZ(value) {
-    if (value === 0){
-      this._r.cpsr |= 0x40000000;
-    } else {
-      this._r.cpsr &= 0xbfffffff;
-    }
+  _setZ(set) {
+    set ? this._r.cpsr |= 0x40000000: this._r.cpsr &= 0xbfffffff;
+  }
+
+  /**
+   * @param {boolean} set
+   * @private
+   */
+  _setC(set) {
+    set ? this._r.cpsr |= 0x20000000 : this._r.cpsr &= 0xdfffffff;
+  }
+
+  /**
+   * @param value
+   * @private
+   */
+  _setV(set) {
+    set ? this._r.cpsr |= 0x10000000 : this._r.cpsr &= 0xefffffff;
   }
 }

@@ -13,7 +13,7 @@ describe('Decoder', () => {
   });
   it('should decode Compare', () => {
     const pc = 0x70;
-    assert.deepEqual(Decoder.decode(pc, 0xe35e0000), [pc, 'cmp', 'r0', 'r14', 0]);
+    assert.deepEqual(Decoder.decode(pc, 0xe35e0000), [pc, 'cmp', 'r0'/*Rd*/, 'r14'/*Rn*/, 0/*Op2*/]);
     assert.equal(Decoder.decodeToString(pc, 0xe35e0000), 'cmp r14,0x00');
   });
   it('should decode Move', () => {

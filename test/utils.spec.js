@@ -32,9 +32,15 @@ describe('Utils', () => {
     assert.equal(Utils.toSigned(0x80), -128);
   });
   it('should return signed bytes', () => {
-    assert.equal(Utils.toSigned(0xffffff), -1);
-    assert.equal(Utils.toSigned(0xfffffe), -2);
-    assert.equal(Utils.toSigned(0x800000/*max*/), -8388608);
+    assert.equal(Utils.toSigned(0xffffffff), -1);
+    assert.equal(Utils.toSigned(0xfffffffe), -2);
+    assert.equal(Utils.toSigned(0x80000000/*max*/), -2147483648);
+  });
+  it('should convert to signed', () => {
+    assert.equal(Utils.toUnsigned(0), 0);
+    assert.equal(Utils.toUnsigned(0x7fffffff), 2147483647);
+    assert.equal(Utils.toUnsigned(-1), 0xffffffff);
+    assert.equal(Utils.toUnsigned(-2), 0xfffffffe);
   });
   it('should format to hex', () => {
     assert.equal(Utils.toHex(0), '00');

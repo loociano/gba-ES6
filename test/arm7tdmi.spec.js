@@ -91,7 +91,7 @@ describe('ARM7TDMI tests', () => {
     });
     it('should execute instructions in a pipeline', () => {
       const pc = 0;
-      cpu.setDecoded([0, 'cmp', 0, 0]);
+      cpu.setDecoded([0, 'cmp', 'r0', 'r0', 0]);
       cpu.setFetched(4, 0xe3510000);
       cpu.setPC(pc + 8);
       cpu.setR1(1);
@@ -228,14 +228,37 @@ describe('ARM7TDMI tests', () => {
     // TODO: test offsets in memory boundaries.
   });
   describe('Compare', () => {
-    it('should compare two numbers', () => {
+    it('should compare two numbers with positive result', () => {
       const pc = cpu.getPC();
-      cpu.setR14(1);
-      cpu.setDecoded([0, 'cmp', 'r0', 1, 1]);
-
+      cpu.setR14(2);
+      cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 1]);
       cpu.execute();
-      assert.equal(cpu.getNZCVQ(), 0b01000);
+      assert.equal(cpu.getNZCVQ(), 0b00100);
       assert.equal(cpu.getPC(), pc + 4);
+    });
+    it('should compare two numbers with negative result', () => {
+      cpu.setR14(1);
+      cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 2]);
+      cpu.execute();
+      assert.equal(cpu.getNZCVQ(), 0b10000);
+    });
+    it('should compare two equal numbers', () => {
+      cpu.setR14(1);
+      cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 1]);
+      cpu.execute();
+      assert.equal(cpu.getNZCVQ(), 0b01100);
+    });
+    it('should compare a negative number', () => {
+      cpu.setR14(0xffffffff); // -1
+      cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 1]);
+      cpu.execute();
+      assert.equal(cpu.getNZCVQ(), 0b10100);
+    });
+    it('should compare with overflow', () => {
+      cpu.setR14(0x80000000); // -MAX_SIGNED_VALUE
+      cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 1]);
+      cpu.execute();
+      assert.equal(cpu.getNZCVQ(), 0b00110); // overflow: no way to represent -MAX -1 with 32 bits
     });
   });
   describe('Move', () => {
