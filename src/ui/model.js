@@ -84,12 +84,12 @@ export default class Model {
    */
   setFlag(flag, value, callback) {
     const cpu = this._gba.getCPU();
-    const nzcvq = this._gba.getCPU().getNZCVQ();
+    const nzcv = this._gba.getCPU().getNZCV();
     const ift = this._gba.getCPU().getIFT();
     const bit = value ? 1 : 0;
     switch(flag) {
-      case 'N': case 'Z': case 'C': case 'V': case 'Q':
-        cpu.setNZCVQ(nzcvq & (~(1 << c.FLAG_BITS[flag]) & 0x1f) | (bit << c.FLAG_BITS[flag]));
+      case 'N': case 'Z': case 'C': case 'V':
+        cpu.setNZCV(nzcv & (~(1 << c.FLAG_BITS[flag]) & 0xf) | (bit << c.FLAG_BITS[flag]));
         break;
       case 'I': case 'F': case 'T':
         cpu.setIFT(ift & (~(1 << c.FLAG_BITS[flag]) & 7) | (bit << c.FLAG_BITS[flag]));
@@ -108,7 +108,7 @@ export default class Model {
    */
   getFlag(flag) {
     const cpu = this._gba.getCPU();
-    const nzcvq = cpu.getNZCVQ();
+    const nzcvq = cpu.getNZCV();
     const ift = cpu.getIFT();
 
     switch(flag) {

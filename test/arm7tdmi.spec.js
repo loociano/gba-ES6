@@ -62,11 +62,11 @@ describe('ARM7TDMI tests', () => {
     });
   });
   describe('Registrers and flags', () => {
-    it('should read NZCVQ flags', () => {
-      cpu.setNZCVQ(0b11111);
-      assert.equal(cpu.getNZCVQ(), 0b11111);
-      cpu.setNZCVQ(0);
-      assert.equal(cpu.getNZCVQ(), 0);
+    it('should read NZCV flags', () => {
+      cpu.setNZCV(0b1111);
+      assert.equal(cpu.getNZCV(), 0b1111);
+      cpu.setNZCV(0);
+      assert.equal(cpu.getNZCV(), 0);
       cpu.setIFT(0b111);
       assert.equal(cpu.getIFT(), 0b111);
       cpu.setIFT(0);
@@ -233,32 +233,32 @@ describe('ARM7TDMI tests', () => {
       cpu.setR14(2);
       cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 1]);
       cpu.execute();
-      assert.equal(cpu.getNZCVQ(), 0b00100);
+      assert.equal(cpu.getNZCV(), 0b0010);
       assert.equal(cpu.getPC(), pc + 4);
     });
     it('should compare two numbers with negative result', () => {
       cpu.setR14(1);
       cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 2]);
       cpu.execute();
-      assert.equal(cpu.getNZCVQ(), 0b10000);
+      assert.equal(cpu.getNZCV(), 0b1000);
     });
     it('should compare two equal numbers', () => {
       cpu.setR14(1);
       cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 1]);
       cpu.execute();
-      assert.equal(cpu.getNZCVQ(), 0b01100);
+      assert.equal(cpu.getNZCV(), 0b0110);
     });
     it('should compare a negative number', () => {
       cpu.setR14(0xffffffff); // -1
       cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 1]);
       cpu.execute();
-      assert.equal(cpu.getNZCVQ(), 0b10100);
+      assert.equal(cpu.getNZCV(), 0b1010);
     });
     it('should compare with overflow', () => {
       cpu.setR14(0x80000000); // -MAX_SIGNED_VALUE
       cpu.setDecoded([0, 'cmp', 'Rd', 'r14'/*Rn*/, 1]);
       cpu.execute();
-      assert.equal(cpu.getNZCVQ(), 0b00110); // overflow: no way to represent -MAX -1 with 32 bits
+      assert.equal(cpu.getNZCV(), 0b0011); // overflow: no way to represent -MAX -1 with 32 bits
     });
   });
   describe('Move', () => {
@@ -281,17 +281,17 @@ describe('ARM7TDMI tests', () => {
       assert.deepEqual(cpu.getFetched(), [pc+8, 0x03a0c301]);
       assert.deepEqual(cpu.getDecoded(), [pc+4, 'mov', 'r14', 'r0', 0]);
       assert.equal(cpu.getR14(), 4);
-      assert.equal(cpu.getNZCVQ(), 0b00000);
+      assert.equal(cpu.getNZCV(), 0b0000);
       assert.equal(cpu.getPC(), pc + 12);
 
       cpu.execute();
       assert.deepEqual(cpu.getDecoded(), [pc+8, 'mov', 'r12', 'r0', 0x4000000]);
       assert.equal(cpu.getR14(), 0);
-      assert.equal(cpu.getNZCVQ(), 0b01000);
+      assert.equal(cpu.getNZCV(), 0b0100);
 
       cpu.execute();
       assert.equal(cpu.getR12(), 0x4000000);
-      assert.equal(cpu.getNZCVQ(), 0b00000);
+      assert.equal(cpu.getNZCV(), 0b0000);
     });
   });
   describe('Load', () => {
@@ -328,7 +328,7 @@ describe('ARM7TDMI tests', () => {
 
       cpu.execute(); // 1 XOR 1 = 0
       assert.equal(cpu.getR0(), 1, 'register unchanged');
-      assert.equal(cpu.getNZCVQ(), 0b01000); // V unaffected
+      assert.equal(cpu.getNZCV(), 0b0100); // V unaffected
     });
   });
 });

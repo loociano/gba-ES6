@@ -40,12 +40,12 @@ export default class ARM7TDMI {
     return this._r.cpsr;
   }
 
-  getNZCVQ() {
-    return this._r.cpsr >>> 27;
+  getNZCV() {
+    return this._r.cpsr >>> 28;
   }
 
-  setNZCVQ(bits) {
-    this._r.cpsr = (this._r.cpsr & 0x07ffffff | (bits << 27)) >>> 0;
+  setNZCV(bits) {
+    this._r.cpsr = (this._r.cpsr & 0x07ffffff | (bits << 28)) >>> 0;
   }
 
   getIFT() {
@@ -145,6 +145,7 @@ export default class ARM7TDMI {
   }
 
   /**
+   * C is set to 0 if the subtraction produced a borrow (that is, an unsigned underflow), and to 1 otherwise.
    * @param {string} Rd
    * @param {string} Rn
    * @param {number} Op2
@@ -155,8 +156,6 @@ export default class ARM7TDMI {
     const diff = sRn - Op2;
     this._setN(Utils.toSigned(diff) < 0);
     this._setZ(diff === 0);
-    // For a subtraction, including the comparison instruction CMP, C is set to 0 if the subtraction produced a borrow
-    // (that is, an unsigned underflow), and to 1 otherwise.
     this._setC(!(Op2 > this._r[Rn]));
     this._setV(diff < -2147483648);
   }
