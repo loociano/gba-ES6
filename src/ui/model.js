@@ -80,19 +80,25 @@ export default class Model {
   /**
    * @param {string} flag
    * @param {boolean} value
+   * @param {Function} callback, will receive updated cpsr
    */
-  setFlag(flag, value) {
+  setFlag(flag, value, callback) {
     const cpu = this._gba.getCPU();
     const nzcvq = this._gba.getCPU().getNZCVQ();
     const ift = this._gba.getCPU().getIFT();
     const bit = value ? 1 : 0;
     switch(flag) {
       case 'N': case 'Z': case 'C': case 'V': case 'Q':
-        return cpu.setNZCVQ(nzcvq & (~(1 << c.FLAG_BITS[flag]) & 0x1f) | (bit << c.FLAG_BITS[flag]));
+        cpu.setNZCVQ(nzcvq & (~(1 << c.FLAG_BITS[flag]) & 0x1f) | (bit << c.FLAG_BITS[flag]));
+        break;
       case 'I': case 'F': case 'T':
-        return cpu.setIFT(ift & (~(1 << c.FLAG_BITS[flag]) & 7) | (bit << c.FLAG_BITS[flag]));
+        cpu.setIFT(ift & (~(1 << c.FLAG_BITS[flag]) & 7) | (bit << c.FLAG_BITS[flag]));
+        break;
       default:
         throw new Error(`SetUnknownFlag ${flag}`);
+    }
+    if (typeof callback === 'function') {
+      callback.call(this, {cpsr: cpu.getCPSR()} );
     }
   }
 

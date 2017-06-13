@@ -62,7 +62,7 @@ export default class Controller {
    * @param value
    */
   setFlag(flag, value) {
-    this._model.setFlag(flag, value);
+    this._model.setFlag(flag, value, (registers) => this._view.render('cpu', registers));
   }
 
   /**

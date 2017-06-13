@@ -19,7 +19,10 @@ describe('Controller', () => {
       execute: function(callback) {
         callback.call(this);
       },
-      setFlag: function(flag, value) { this._flags[flag] = value; },
+      setFlag: function(flag, value, callback) {
+        this._flags[flag] = value;
+        if (typeof callback === 'function') callback.call(this);
+      },
       getFlag: function(flag) { return this._flags[flag]; },
       getMemory: function() {},
       getInstrs: function(offset, length) {},
@@ -62,6 +65,7 @@ describe('Controller', () => {
       assert.equal(renderings['program'], true);
       assert.equal(renderings['memory'], true);
       assert.equal(renderings['controls'], true);
+      assert.equal(renderings['cpu'], undefined); // CPU state has not changed
       assert.deepEqual(renderArgs['controls'], { run: false, step: false });
     });
     it('should bind UI elements to actions', () => {
@@ -84,6 +88,7 @@ describe('Controller', () => {
     it('should read/write flags', () => {
       controller.setFlag('N', true);
       controller.setFlag('Z', true);
+      assert.equal(renderings['cpu'], true);
       assert.equal(model.getFlag('N'), true);
       assert.equal(model.getFlag('Z'), true);
       assert.equal(model.getFlag('C'), false);

@@ -35,6 +35,10 @@ export default class ARM7TDMI {
     return this._r;
   }
 
+  getCPSR() {
+    return this._r.cpsr;
+  }
+
   getNZCVQ() {
     return this._r.cpsr >>> 27;
   }
