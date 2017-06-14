@@ -253,6 +253,7 @@ describe('ARM7TDMI tests', () => {
       cpu.setDecoded({addr: 0, op: 'cmp', Rn: 'r14', Op2: 1});
       cpu.execute();
       assert.equal(cpu.getNZCV(), 0b1010);
+      assert.equal(cpu.getCPSR(), 0xa0000000); // make sure CPSR is always unsigned
     });
     it('should compare with overflow', () => {
       cpu.setR14(0x80000000); // -MAX_SIGNED_VALUE

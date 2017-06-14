@@ -202,7 +202,7 @@ export default class ARM7TDMI {
    * @private
    */
   _setN(set) {
-    set ? this._r.cpsr |= 0x80000000 : this._r.cpsr &= 0x7fffffff;
+    set ? this._r.cpsr = (this._r.cpsr | 0x80000000) >>> 0 : this._r.cpsr &= 0x7fffffff;
   }
 
   /**
@@ -211,7 +211,7 @@ export default class ARM7TDMI {
    * @private
    */
   _setZ(set) {
-    set ? this._r.cpsr |= 0x40000000: this._r.cpsr &= 0xbfffffff;
+    set ? this._r.cpsr |= 0x40000000: this._r.cpsr = (this._r.cpsr & 0xbfffffff) >>> 0;
   }
 
   /**
@@ -219,7 +219,7 @@ export default class ARM7TDMI {
    * @private
    */
   _setC(set) {
-    set ? this._r.cpsr |= 0x20000000 : this._r.cpsr &= 0xdfffffff;
+    set ? this._r.cpsr |= 0x20000000 : this._r.cpsr = (this._r.cpsr & 0xdfffffff) >>> 0;
   }
 
   /**
@@ -227,6 +227,6 @@ export default class ARM7TDMI {
    * @private
    */
   _setV(set) {
-    set ? this._r.cpsr |= 0x10000000 : this._r.cpsr &= 0xefffffff;
+    set ? this._r.cpsr |= 0x10000000 : this._r.cpsr = (this._r.cpsr & 0xefffffff) >>> 0;
   }
 }
