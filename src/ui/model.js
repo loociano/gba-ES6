@@ -13,7 +13,7 @@ export default class Model {
   constructor(GBA) {
     if (!GBA) throw new Error('MissingGBA');
     this._gba = GBA;
-    this._programLine = 0;
+    this._programLine = 0; // top line in the program display
     this._running = false;
   }
 
@@ -52,7 +52,7 @@ export default class Model {
   boot(callback) {
     const oldRegisters = Object.assign({}, this.getRegisters()); // clone
     this._gba.getCPU().boot();
-    this._programLine = this._gba.getCPU()._decoded[0];
+    this._programLine = this._gba.getCPU().getDecodedAddr();
     if (typeof callback === 'function') {
       callback.call(this, this._updatedRegisters(oldRegisters));
     }
@@ -64,7 +64,7 @@ export default class Model {
   execute(callback) {
     const oldRegisters = Object.assign({}, this.getRegisters()); // clone
     this._gba.getCPU().execute();
-    this._programLine = this._gba.getCPU()._decoded[0];
+    this._programLine = this._gba.getCPU().getDecodedAddr();
     if (typeof callback === 'function') {
       callback.call(this, this._updatedRegisters(oldRegisters));
     }

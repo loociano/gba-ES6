@@ -24,7 +24,7 @@ export default class ARM7TDMI {
     };
     // {Array} [{number} pc, {number} word]
     this._fetched = null;
-    // {Array} decoded instruction [{number} pc, {string} opcode, ...{number} operands]
+    // {Object} decoded instruction {addr: {number}, op: {string} ...}
     this._decoded = null;
   }
 
@@ -57,6 +57,13 @@ export default class ARM7TDMI {
   }
 
   /**
+   * @return {Object}
+   */
+  getDecodedAddr() {
+    return this._decoded.addr;
+  }
+
+  /**
    * @param {Uint8Array} BIOS
    * @public
    */
@@ -85,8 +92,8 @@ export default class ARM7TDMI {
    */
   _fetch() {
     let readFrom;
-    if (this._decoded !== null && this._decoded[1] === 'b'){
-      readFrom = this._decoded[2];
+    if (this._decoded !== null && this._decoded.op === 'b'){
+      readFrom = this._decoded.sOffset;
     } else if (this._branched) {
       readFrom = this._r.pc + c.ARM_INSTR_LENGTH;
     } else {
@@ -118,11 +125,11 @@ export default class ARM7TDMI {
    */
   _execute() {
     if (this._decoded !== null) {
-      const pc = this._decoded.splice(0, 1)[0];
-      const op = this._decoded.splice(0, 1)[0];
+      const addr = this._decoded.addr;
+      const op = this._decoded.op;
       if (this._opcodes[op]) {
-        Logger.instr(pc, op, this._decoded);
-        this._opcodes[op].apply(this, this._decoded);
+        Logger.instr(addr, op, this._decoded);
+        this._opcodes[op].call(this, this._decoded);
       } else {
         Logger.info(`${op} unimplemented`);
       }
@@ -135,23 +142,22 @@ export default class ARM7TDMI {
   _nop() {}
 
   /**
-   * Branch
-   * @param {number} addr
+   * @param {Object} args
    * @private
    */
-  _b(addr) {
-    this._r.pc = addr;
+  _b(args) {
+    this._r.pc = args.sOffset;
     this._branched = true;
   }
 
   /**
    * C is set to 0 if the subtraction produced a borrow (that is, an unsigned underflow), and to 1 otherwise.
-   * @param {string} Rd
-   * @param {string} Rn
-   * @param {number} Op2
+   * @param {Object} args
    * @private
    */
-  _cmp(Rd/*unused*/, Rn, Op2) {
+  _cmp(args) {
+    const Rn = args.Rn;
+    const Op2 = args.Op2;
     const sRn = Utils.toSigned(this._r[Rn]);
     const diff = sRn - Op2;
     this._setN(Utils.toSigned(diff) < 0);
@@ -161,39 +167,34 @@ export default class ARM7TDMI {
   }
 
   /**
-   * @param {string} Rd
-   * @param {string} Rn
-   * @param {number} Op2
+   * @param {Object} args
    * @private
    */
-  _mov(Rd, Rn/*unused*/, Op2) {
+  _mov(args) {
+    const Rd = args.Rd;
+    const Op2 = args.Op2;
     this._r[Rd] = Op2;
     this._setZ(Op2 === 0);
   }
 
   /**
-   * @param {string} Rd
-   * @param {string} Rn
-   * @param {boolean} P pre-increment
-   * @param {number} offset
+   * @param {Object} args
    * @private
    */
-  _ldr(Rd, Rn, P, offset) {
-    if (P) {
-      this._r[Rd] = this._mmu.readWord(this._r[Rn] + offset);
+  _ldr(args) {
+    if (args.pre) {
+      this._r[args.Rd] = this._mmu.readWord(this._r[args.Rn] + args.offset);
     } else {
       //TODO
     }
   }
 
   /**
-   * @param {string} Rd
-   * @param {string} Rn
-   * @param {string} Op2
+   * @param {Object} args
    * @private
    */
-  _teq(Rd/*unused*/, Rn, Op2) {
-    const xor = (this._r[Rn] ^ Op2) >>> 0;
+  _teq(args) {
+    const xor = (this._r[args.Rn] ^ args.Op2) >>> 0;
     this._setZ(xor === 0);
   }
 
@@ -223,7 +224,7 @@ export default class ARM7TDMI {
   }
 
   /**
-   * @param value
+   * @param set
    * @private
    */
   _setV(set) {

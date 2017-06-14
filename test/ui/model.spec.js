@@ -15,7 +15,8 @@ describe('Model', () => {
     getNZCV: function() { return this._r.nzcv; },
     setNZCV: function(nzcv) { this._r.nzcv = nzcv; },
     getIFT: function() { return this._r.ift; },
-    setIFT: function(ift) { this._r.ift = ift; }
+    setIFT: function(ift) { this._r.ift = ift; },
+    getDecodedAddr: function() { return 0; }
   };
   const gbaMock = {
     _running: false,

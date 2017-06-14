@@ -11,12 +11,16 @@ export default class Logger {
   }
 
   /**
-   * @param {number} pc
+   * @param {number} addr
    * @param {number} opcode
-   * @param {Array} operands
+   * @param {Object} operands
    */
-  static instr(pc, opcode, operands) {
-    console.info(` ${Utils.to32hex(pc)}  ${opcode} ${operands.map( (operand) => Utils.toHex(operand) ).toString()}`);
+  static instr(addr, opcode, operands) {
+    const array = [];
+    for (let val in operands) {
+      array.push(Utils.toHex(operands[val]));
+    }
+    console.info(` ${Utils.to32hex(addr)}  ${opcode} ${array.join(' ')}`);
   }
 
   /**
