@@ -21,6 +21,7 @@ export default class ARM7TDMI {
       'ldr': this._ldr,
       'mov': this._mov,
       'mrs': this._mrs,
+      'orr': this._orr,
       'teq': this._teq
     };
     // {Array} [{number} pc, {number} word]
@@ -294,18 +295,21 @@ export default class ARM7TDMI {
     this._setV(diff < -2147483648);
   }
 
-  /**
-   * @param {Object} args
-   * @private
-   */
   _mrs(args) {
     this._r[args.Rd] = this._r.cpsr;
   }
 
-  /**
-   * @param {Object} args
-   * @private
-   */
+  _orr(args) {
+    const or = (this._r[args.Rn] | args.Op2) >>> 0;
+    this._r[args.Rd] = or;
+    if (args.setCondition) {
+      this._setN(or >>> 31 === 1);
+      this._setZ(or === 0);
+      // TODO: C
+      // V unaffected
+    }
+  }
+
   _mov(args) {
     const Rd = args.Rd;
     const Op2 = args.Op2;
@@ -316,10 +320,6 @@ export default class ARM7TDMI {
     }
   }
 
-  /**
-   * @param {Object} args
-   * @private
-   */
   _ldr(args) {
     if (args.pre) {
       this._r[args.Rd] = this._mmu.readWord(this._r[args.Rn] + args.offset);
@@ -328,10 +328,6 @@ export default class ARM7TDMI {
     }
   }
 
-  /**
-   * @param {Object} args
-   * @private
-   */
   _teq(args) {
     const xor = (this._r[args.Rn] ^ args.Op2) >>> 0;
     this._setN(xor >>> 31 === 1);

@@ -518,6 +518,20 @@ describe('ARM7TDMI tests', () => {
       assert.equal(cpu.getR0(), 0xffffffff, 'register unchanged');
       assert.equal(cpu.getNZCV(), 0b1000);
     });
+    it('should OR', () => {
+      cpu.setR1(0x8000000c);
+      cpu.setDecoded({op: 'orr', Rd: 'r14', Rn: 'r1', Op2: 0xc0, setCondition: true});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0x800000cc);
+      assert.equal(cpu.getNZCV(), 0b1000);
+    });
+    it('should OR with zero result', () => {
+      cpu.setR1(0);
+      cpu.setDecoded({op: 'orr', Rd: 'r14', Rn: 'r1', Op2: 0, setCondition: true});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0);
+      assert.equal(cpu.getNZCV(), 0b0100);
+    });
   });
   describe('PSR transfer', () => {
     it('should MRS', () => {
