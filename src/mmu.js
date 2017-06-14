@@ -8,6 +8,7 @@ export default class MMU {
   constructor(rom) {
     this._memory = new Uint8Array(c.MEMORY_SIZE);
     this._rom = rom;
+    this._memory[c.ADDR_POSTFLG] = 1;
   }
 
   /**

@@ -13,6 +13,11 @@ describe('MMU', () => {
   beforeEach( () => {
     mmu = new MMU(rom);
   });
+  describe('Initialization', () => {
+    it('should set the Post Boot Flag (POSTFLG)', () => {
+      assert.equal(mmu.readByte(c.ADDR_POSTFLG) & 1, 1, 'Boot completed');
+    });
+  });
   it('should write/read a byte', () => {
     mmu.writeByte(1, 0);
     assert.equal(mmu.readByte(0), 1);
