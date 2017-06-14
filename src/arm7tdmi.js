@@ -127,14 +127,142 @@ export default class ARM7TDMI {
   _execute() {
     if (this._decoded !== null) {
       const op = this._decoded.op;
-      if (this._opcodes[op]) {
+      if (this._opcodes[op] && this._meetsCondition(this._decoded.cond)) {
         Logger.instr(this._decoded.addr, this._decoded.toString);
         this._opcodes[op].call(this, this._decoded);
-      } else {
-        Logger.info(`${op} unimplemented`);
       }
     }
     return this;
+  }
+
+  /**
+   * @param {string} cond
+   * @return {boolean}
+   * @private
+   */
+  _meetsCondition(cond) {
+    if (this[`_${cond}`]) return this[`_${cond}`].call(this);
+    return true;
+  }
+
+  /**
+   * @return {boolean} true if equal (zero) (same)
+   * @private
+   */
+  _eq() {
+    return (this._r.cpsr >>> 30 & 1) === 1;
+  }
+
+  /**
+   * @return {boolean} true if not equal (nonzero) (not same)
+   * @private
+   */
+  _ne() {
+    return !this._eq();
+  }
+
+  /**
+   * @return {boolean} true if unsigned higher or same (carry set)
+   * @private
+   */
+  _cs() {
+    return (this._r.cpsr >>> 29 & 1) === 1;
+  }
+
+  /**
+   * @return {boolean} true if unsigned lower (carry cleared)
+   * @private
+   */
+  _cc() {
+    return !this._cs();
+  }
+
+  /**
+   * @return {boolean} true if negative (minus)
+   * @private
+   */
+  _mi() {
+    return (this._r.cpsr >>> 31 & 1) === 1;
+  }
+
+  /**
+   * @return {boolean} true if positive or zero (plus)
+   * @private
+   */
+  _pl() {
+    return !this._mi();
+  }
+
+  /**
+   * @return {boolean} true if overflow (V set)
+   * @private
+   */
+  _vs() {
+    return (this._r.cpsr >>> 28 & 1) === 1;
+  }
+
+  /**
+   * @return {boolean} true if no overflow (V cleared)
+   * @private
+   */
+  _vc() {
+    return !this._vs();
+  }
+
+  /**
+   * @return {boolean} true if unsigned higher
+   * @private
+   */
+  _hi() {
+    return this._cs() && this._ne();
+  }
+
+  /**
+   * @return {boolean} true if unsigned lower or same
+   * @private
+   */
+  _ls() {
+    return !this._hi();
+  }
+
+  /**
+   * @return {boolean} true if greater or equal (N=V)
+   * @private
+   */
+  _ge() {
+    return (this._r.cpsr >>> 31 & 1) === (this._r.cpsr >>> 28 & 1);
+  }
+
+  /**
+   * @return {boolean} true if strictly less than (N!=V)
+   * @private
+   */
+  _lt() {
+    return !this._ge();
+  }
+
+  /**
+   * @return {boolean} true if strictly greater than
+   * @private
+   */
+  _gt() {
+    return this._ne() && this._ge();
+  }
+
+  /**
+   * @return {boolean} true if less or equal
+   * @private
+   */
+  _le() {
+    return this._eq() || this._lt();
+  }
+
+  /**
+   * @return {boolean} false always
+   * @private
+   */
+  _nv() {
+    return false;
   }
 
   // Instructions

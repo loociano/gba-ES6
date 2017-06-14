@@ -9,6 +9,8 @@ describe('ARM7TDMI tests', () => {
   let cpu, mmuMock;
   beforeEach(() => {
     Logger.instr = function() {};
+    Logger.fetched = function() {};
+    Logger.info = function() {};
     mmuMock = new MMUMock();
     cpu = new ARM7TDMI(mmuMock);
     /**
@@ -112,6 +114,188 @@ describe('ARM7TDMI tests', () => {
       assert.deepEqual(cpu.getFetched(), [0x74, 0xffffffff]);
       assert.include(cpu.getDecoded(), {addr: 0x70, op: 'cmp', Rn: 'r14', Op2: 0});
       assert.equal(cpu.getPC(), 0x70 + 8);
+    });
+  });
+  describe('Conditions', () => {
+    it('should execute if last operation was zero', () => {
+      cpu.setNZCV(0);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'eq', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'Z=0, r14 not updated');
+      cpu.setNZCV(0b0100);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should execute if the last operation was not zero', () => {
+      cpu.setNZCV(0b0100);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'ne', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'Z=1, r14 not updated');
+      cpu.setNZCV(0);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should execute if the last operation carried', () => {
+      cpu.setNZCV(0);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'cs', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'C=0, r14 not updated');
+      cpu.setNZCV(0b0010);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should execute if the last operation did not carry', () => {
+      cpu.setNZCV(0b0010);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'cc', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'C=1, r14 not updated');
+      cpu.setNZCV(0);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should execute if the last result was negative', () => {
+      cpu.setNZCV(0);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'mi', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'N=0, r14 not updated');
+      cpu.setNZCV(0b1000);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should execute if the last result was not negative', () => {
+      cpu.setNZCV(0b1000);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'pl', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'N=1, r14 not updated');
+      cpu.setNZCV(0);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should execute if the last result overflew', () => {
+      cpu.setNZCV(0);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'vs', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'V=0, r14 not updated');
+      cpu.setNZCV(0b0001);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should execute if the last result did not overflow', () => {
+      cpu.setNZCV(0b0001);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'vc', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'V=1, r14 not updated');
+      cpu.setNZCV(0);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should execute if the last result was unsigned higher', () => {
+      cpu.setNZCV(0);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'hi', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'C=0, Z=0, r14 not updated');
+      cpu.setNZCV(0b0010);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'C=1, Z=0');
+    });
+    it('should execute if the last result was unsigned lower', () => {
+      cpu.setNZCV(0b0010);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'ls', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'C=1, r14 not updated');
+      cpu.setNZCV(0b0000);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'unsigned lower, r14 updated');
+    });
+    it('should execute if the last result was same', () => {
+      cpu.setNZCV(0b0100);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'ls', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'same, r14 not updated');
+    });
+    it('should execute if the last result was greater (or equal)', () => {
+      cpu.setNZCV(0b1000);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'ge', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'not greater, r14 not updated');
+      cpu.setNZCV(0b1001);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'greater');
+    });
+    it('should execute if the last result was the (greater) or same', () => {
+      cpu.setNZCV(0b1001);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'ge', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'same');
+    });
+    it('should execute if the last result was strictly lower', () => {
+      cpu.setNZCV(0);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'lt', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'V=N not lower, r14 not updated');
+      cpu.setNZCV(0b1000);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'V!=N lower');
+    });
+    it('should execute if the last result was strictly greater', () => {
+      cpu.setNZCV(0b0100);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'gt', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'same, r14 not updated');
+      cpu.setNZCV(0b1001);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'greater');
+    });
+    it('should execute if the last result was strictly greater', () => {
+      cpu.setNZCV(0b0000);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'gt', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'greater, r14 not updated');
+    });
+    it('should execute if the last result was less or equal', () => {
+      cpu.setNZCV(0b0000);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'le', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0, 'greater, r14 not updated');
+      cpu.setNZCV(0b1000);
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'less');
+    });
+    it('should execute if the last result was equal', () => {
+      cpu.setNZCV(0b0100);
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'le', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1, 'equal');
+    });
+    it('should execute always regardless of previous operation', () => {
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'al', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 1);
+    });
+    it('should never execute regardless of previous operation', () => {
+      cpu.setR14(0);
+      cpu.setDecoded({op: 'mov', cond: 'nv', Rd: 'r14', Op2: 1});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0);
     });
   });
   describe('Branch', () => {
@@ -244,21 +428,21 @@ describe('ARM7TDMI tests', () => {
   describe('Move', () => {
     it('should store an immediate value into a register', () => {
       const pc = cpu.getPC();
-      mmuMock.writeWord(0x03a0e004, pc); // mov r14,4
-      mmuMock.writeWord(0x03b0e000, pc+4); // mov r14,0  to test zero flag
-      mmuMock.writeWord(0x03b0c301, pc+8); // mov r12,0x4000000 test rotated immediate
+      mmuMock.writeWord(0xe3a0e004, pc); // mov r14,4
+      mmuMock.writeWord(0xe3b0e000, pc+4); // mov r14,0  to test zero flag
+      mmuMock.writeWord(0xe3b0c301, pc+8); // mov r12,0x4000000 test rotated immediate
 
       cpu.execute();
-      assert.deepEqual(cpu.getFetched(), [pc, 0x03a0e004]);
+      assert.deepEqual(cpu.getFetched(), [pc, 0xe3a0e004]);
       assert.equal(cpu.getPC(), pc + 4);
 
       cpu.execute();
-      assert.deepEqual(cpu.getFetched(), [pc+4, 0x03b0e000]);
+      assert.deepEqual(cpu.getFetched(), [pc+4, 0xe3b0e000]);
       assert.include(cpu.getDecoded(), {addr: pc, op: 'mov', Rd: 'r14', Op2: 4});
       assert.equal(cpu.getPC(), pc + 8);
 
       cpu.execute(); // mov r14,4
-      assert.deepEqual(cpu.getFetched(), [pc+8, 0x03b0c301]);
+      assert.deepEqual(cpu.getFetched(), [pc+8, 0xe3b0c301]);
       assert.include(cpu.getDecoded(), {addr: pc+4, op: 'mov', Rd: 'r14', Op2: 0, setCondition: true});
       assert.equal(cpu.getR14(), 4);
       assert.equal(cpu.getNZCV(), 0b0000);
