@@ -14,6 +14,7 @@ export default class Model {
     if (!GBA) throw new Error('MissingGBA');
     this._gba = GBA;
     this._programLine = 0; // top line in the program display
+    this._memoryLine = 0;
     this._running = false;
   }
 
@@ -46,6 +47,17 @@ export default class Model {
   }
 
   /**
+   * @param line
+   * @param {function} callback
+   */
+  setMemoryLine(line, callback) {
+    this._memoryLine = line;
+    if (typeof callback === 'function') {
+      callback.call(this, this._memoryLine);
+    }
+  }
+
+  /**
    * //TODO: parametrize method
    * @param {function} callback
    */
@@ -54,7 +66,7 @@ export default class Model {
     this._gba.getCPU().boot();
     this._programLine = this._gba.getCPU().getDecodedAddr();
     if (typeof callback === 'function') {
-      callback.call(this, this._updatedRegisters(oldRegisters));
+      callback.call(this, this._updatedRegisters(oldRegisters), this._programLine, this._memoryLine);
     }
   }
 
@@ -66,7 +78,7 @@ export default class Model {
     this._gba.getCPU().execute();
     this._programLine = this._gba.getCPU().getDecodedAddr();
     if (typeof callback === 'function') {
-      callback.call(this, this._updatedRegisters(oldRegisters));
+      callback.call(this, this._updatedRegisters(oldRegisters), this._programLine, this._memoryLine);
     }
   }
 
@@ -124,8 +136,8 @@ export default class Model {
   /**
    * @return {Uint8Array} memory
    */
-  getMemory() {
-    return this._gba._cpu._mmu._memory;
+  getMemoryPage() {
+    return this._gba.getCPU()._mmu.readRawArray(this._memoryLine, c.MEMORY_PAGE_LINES * c.BYTES_PER_MEMORY_LINE);
   }
 
   /**

@@ -90,4 +90,13 @@ export default class MMU {
     }
     return result;
   }
+
+  /**
+   * @param offset
+   * @param length
+   * @return {Uint8Array}
+   */
+  readRawArray(offset, length) {
+    return this._memory.subarray(offset, offset+length);
+  }
 }

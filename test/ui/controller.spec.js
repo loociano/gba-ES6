@@ -14,6 +14,7 @@ describe('Controller', () => {
     };
     model = {
       _line: 0,
+      _memoryLine: 0,
       _running: false,
       _flags : { N: false, Z: false, C: false },
       execute: function(callback) {
@@ -24,7 +25,7 @@ describe('Controller', () => {
         if (typeof callback === 'function') callback.call(this);
       },
       getFlag: function(flag) { return this._flags[flag]; },
-      getMemory: function() {},
+      getMemoryPage: function() {},
       getInstrs: function(offset, length) {},
       getPC: function() {},
       getRegisters: function() {},
@@ -32,7 +33,12 @@ describe('Controller', () => {
         this._line = line;
         if (typeof callback === 'function') callback.call(this, line);
       },
+      getMemoryLine: function() { return this._memoryLine; },
       getProgramLine: function() { return this._line; },
+      setMemoryLine: function(line, callback) {
+        this._memoryLine = line;
+        if (typeof callback === 'function') callback.call(this, line);
+      },
       setBIOS: function() {},
       boot: function(callback) {
         if (typeof callback === 'function') callback.call(this);
@@ -77,12 +83,9 @@ describe('Controller', () => {
       assert.equal(bindings['onProgramScroll'], true);
       assert.equal(bindings['setProgramLine'], true);
       assert.equal(bindings['onKeyDownProgramLine'], true);
+      assert.equal(bindings['setMemoryLine'], true);
+      assert.equal(bindings['onKeyDownMemoryLine'], true);
     });
-  });
-  it('should re-render program', () => {
-    controller.renderProgram();
-    assert.equal(renderings['program'], true);
-    assert.equal(renderings['currentInstr'], true);
   });
   describe('Flag bindings', () => {
     it('should read/write flags', () => {
@@ -168,6 +171,7 @@ describe('Controller', () => {
       controller.setProgramLine('10');
 
       assert.equal(renderings['program'], true);
+      assert.equal(renderArgs['program'].offset, 0x10);
       assert.equal(renderings['currentInstr'], true);
       assert.equal(renderArgs['currentInstr'].offset, 0x10);
     });
@@ -205,6 +209,15 @@ describe('Controller', () => {
       controller.setProgramLine('0fffffb4'); // out of bound
       assert.equal(renderings['program'], true);
       assert.equal(model.getProgramLine(), 0x0fffffb0); //max
+    });
+  });
+  describe('Go to Memory Line', () => {
+    it('should go to memory line', () => {
+      controller.setMemoryLine('10');
+
+      assert.equal(renderings['memory'], true);
+      assert.equal(renderArgs['memory'].offset, 0x10);
+      assert.equal(model.getMemoryLine(), 0x10);
     });
   });
 });

@@ -7,6 +7,25 @@ import AnimationFrame from './animationFrame';
 export default class View {
 
   /**
+   * @param target
+   * @param type
+   * @param callback
+   */
+  static on(target, type, callback) {
+    target.addEventListener(type, callback);
+  }
+
+  /**
+   * @param {Event} evt
+   * @param {Function} handler
+   */
+  static onMouseWheel(evt, handler) {
+    evt.preventDefault();
+    const delta = (evt.wheelDeltaY) > 0 ? -c.INSTR_ON_SCROLL : c.INSTR_ON_SCROLL;
+    handler(delta);
+  }
+
+  /**
    * @param {Window} window
    * @param {FileReader} reader
    */
@@ -17,10 +36,10 @@ export default class View {
     this._document = window.document;
     this._reader = reader;
     this.$memory = this._document.querySelector('#memory textarea');
-    this.$cpu = this._document.querySelector('#cpu ul');
     this.$program = this._document.getElementById('program');
     this.$programInstrs = null; // will hold all the instr li
-    this.$lineInput = this._document.querySelector('input[name="programLine"]');
+    this.$programLineInput = this._document.querySelector('input[name="programLine"]');
+    this.$memoryLineInput = this._document.querySelector('input[name="memoryLine"]');
     this.$registers = this._document.querySelectorAll('#cpu span');
     this.$runButton = this._document.querySelector('#controls button[name="run"]');
     this.$flagLines = this._document.querySelectorAll('#flags li');
@@ -29,17 +48,11 @@ export default class View {
     this.requestFrame(true);
   }
 
+  /**
+   * @param {boolean} request
+   */
   requestFrame(request) {
     this._window.frame = request ? AnimationFrame.frame : AnimationFrame.stop;
-  }
-
-  /**
-   * @param target
-   * @param type
-   * @param callback
-   */
-  static on(target, type, callback) {
-    target.addEventListener(type, callback);
   }
 
   /**
@@ -68,26 +81,14 @@ export default class View {
         View.on(this.$program, 'wheel', (evt) => View.onMouseWheel(evt, handler));
         break;
       case 'setProgramLine':
-        View.on(this._document.querySelector('button[name="setProgramLine"]'), 'click', () => {
-          handler(this.$lineInput.value);
-        });
-        break;
+        return this._bindLineInput(this._document.querySelector('button[name="setProgramLine"]'), this.$programLineInput, handler);
+      case 'setMemoryLine':
+        return this._bindLineInput(this._document.querySelector('button[name="setMemoryLine"]'), this.$memoryLineInput, handler);
       case 'onKeyDownProgramLine':
-        View.on(this.$lineInput, 'keydown', (evt) => {
-          if (evt.keyCode === c.ENTER_KEYCODE) handler(this.$lineInput.value);
-        });
-        break;
+        return this._bindKeyDownLineInput(this.$programLineInput, handler);
+      case 'onKeyDownMemoryLine':
+        return this._bindKeyDownLineInput(this.$memoryLineInput, handler);
     }
-  }
-
-  /**
-   * @param {Event} evt
-   * @param {Function} handler
-   */
-  static onMouseWheel(evt, handler) {
-    evt.preventDefault();
-    const delta = (evt.wheelDeltaY) > 0 ? -c.INSTR_ON_SCROLL : c.INSTR_ON_SCROLL;
-    handler(delta);
   }
 
   /**
@@ -114,7 +115,7 @@ export default class View {
       case 'currentInstr':
         return this._highlightCurrentInstr(args.offset, args.pc);
       case 'memory':
-        return this._renderMemoryPage(args);
+        return this._renderMemoryPage(args.memory, args.offset);
       case 'program':
         return this._renderProgramPage(args.instrs, args.offset);
       case 'running':
@@ -255,18 +256,40 @@ export default class View {
   }
 
   /**
-   * @param {Uint8Array} memory
+   * @param {Uint8Array} memory page, should be 256 bytes
+   * @param {number} offset
    * @private
    */
-  _renderMemoryPage(memory) {
+  _renderMemoryPage(memory, offset) {
     const lines = [];
-    for(let i = 0; i < 0x100; i += 0x10){
+    for(let i = 0; i < memory.length; i += 0x10){
       const values = [];
       for(let j = i; j < i+0x10; j++){
         values.push(Utils.toHex(memory[j]));
       }
-      lines.push(`${Utils.to32hex(i)} ${values.join(' ')}`);
+      lines.push(`${Utils.to32hex(i + offset)} ${values.join(' ')}`);
     }
     this.$memory.textContent = lines.join('\n');
+  }
+
+  /**
+   * @param $elt
+   * @param $lineInput
+   * @param handler
+   * @private
+   */
+  _bindLineInput($elt, $lineInput, handler) {
+    View.on($elt, 'click', () => handler($lineInput.value));
+  }
+
+  /**
+   * @param $lineInput
+   * @param handler
+   * @private
+   */
+  _bindKeyDownLineInput($lineInput, handler) {
+    View.on($lineInput, 'keydown', (evt) => {
+      if (evt.keyCode === c.ENTER_KEYCODE) handler($lineInput.value);
+    });
   }
 }

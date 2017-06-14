@@ -8,7 +8,8 @@ import AnimationFrame from '../../src/ui/animationFrame';
 
 describe('View', () => {
   let dom, view;
-  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memory, $registers, $flags, $flagLines, $flagN, $stepButton, $runButton;
+  let $load, $program, $programLines, $programLineInput, $setProgramLine, $memoryLineInput, $setMemoryLine, $memory,
+    $registers, $flags, $flagLines, $flagN, $stepButton, $runButton;
   const mockReader = {
     /**
      * @param {Array} file
@@ -49,7 +50,7 @@ describe('View', () => {
         <li>sprs <span id="sprs">00000000</span></li>
        </ul></div>
       <div id="program"><ul></ul><input name="programLine"/><button name="setProgramLine"></button></div>
-      <div id="memory"><textarea></textarea></div>
+      <div id="memory"><textarea></textarea><input name="memoryLine"/><button name="setMemoryLine"></button></div>
       <div id="flags">
         <li><input type="checkbox" id="N"/></li>
         <li><input type="checkbox" id="Z"/></li>
@@ -66,6 +67,8 @@ describe('View', () => {
     $programLines = dom.window.document.querySelectorAll('#program ul li');
     $setProgramLine = dom.window.document.querySelector('button[name="setProgramLine"]');
     $programLineInput = dom.window.document.querySelector('input[name="programLine"]');
+    $setMemoryLine = dom.window.document.querySelector('button[name="setMemoryLine"]');
+    $memoryLineInput = dom.window.document.querySelector('input[name="memoryLine"]');
     $memory = dom.window.document.querySelector('#memory textarea');
     $flagN = dom.window.document.querySelector('#flags #N');
     $flags = dom.window.document.querySelectorAll('#flags input[type="checkbox"]');
@@ -222,15 +225,50 @@ describe('View', () => {
   });
   describe('Memory view', () => {
     it('should render memory page (16 lines)', () => {
-      const memory = new Uint8Array(0x100);
+      const memory = new Uint8Array(256);
       memory[0] = 0x11;
       memory[0xff] = 0xff;
 
-      view.render('memory', memory);
+      view.render('memory', { memory, offset: 0});
       const lines = $memory.textContent.split('\n');
       assert.equal(lines.length, 0x10);
       assert.equal(lines[0], '00000000 11 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00');
       assert.equal(lines[0xf], '000000f0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff');
+    });
+    it('should render memory page with offset', () => {
+      const memory = new Uint8Array(256);
+      memory[0] = 0x11;
+      memory[0xff] = 0xff;
+
+      view.render('memory', { memory, offset: 256});
+      const lines = $memory.textContent.split('\n');
+      assert.equal(lines.length, 0x10);
+      assert.equal(lines[0], '00000100 11 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00');
+      assert.equal(lines[0xf], '000001f0 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff');
+    });
+    it('should bind memory line jump', () => {
+      let memoryLine;
+      view.bind('setMemoryLine', (line) => { memoryLine = line });
+
+      $memoryLineInput.value = '5';
+      $setMemoryLine.click();
+      assert.equal(memoryLine, '5');
+
+      $memoryLineInput.value = '-1'; // invalid hex
+      $setMemoryLine.click();
+      assert.equal(memoryLine, '-1');
+
+      $memoryLineInput.value = 'f';
+      $setMemoryLine.click();
+      assert.equal(memoryLine, 'f');
+    });
+    it('should bind Enter key on memory jump address', () => {
+      let memoryLine;
+      view.bind('onKeyDownMemoryLine', (line) => { memoryLine = line });
+      $memoryLineInput.value = '5';
+
+      view.mockKeyPress($memoryLineInput, c.ENTER_KEYCODE);
+      assert.equal(memoryLine, '5');
     });
   });
   describe('Program view', () => {

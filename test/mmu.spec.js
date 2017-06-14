@@ -26,11 +26,13 @@ describe('MMU', () => {
     assert.equal(mmu.readWord(0x08000000), 0x04030201);
   });
   it('should write/read an array', () => {
-    const array = new Uint8Array(new Buffer('1234567890abcdef', 'hex'));
+    const buffer = new Buffer('1234567890abcdef', 'hex');
+    const array = new Uint8Array(buffer);
     mmu.writeArray(array, 0);
     assert.equal(mmu.readWord(0), 0x78563412);
     assert.equal(mmu.readWord(4), 0xefcdab90);
     assert.deepEqual(mmu.readArray(0/*offset*/, 2/*size*/), [0x78563412, 0xefcdab90]);
+    assert.deepEqual(mmu.readRawArray(0/*offset*/, 8/*size*/), array);
   });
   it('should prohibit reads outside memory', () => {
     assert.throws( () => mmu.readByte(0x10000000), Error);

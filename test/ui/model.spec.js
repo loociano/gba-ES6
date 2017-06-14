@@ -1,10 +1,14 @@
 import {describe, beforeEach, it} from 'mocha';
 import {assert} from 'chai';
 import Model from '../../src/ui/model';
+import * as c from '../../src/constants';
 
 describe('Model', () => {
   let model;
   const cpuMock = {
+    _mmu: {
+      readRawArray(offset, length) { return new Uint8Array(length); }
+    },
     _decoded: [],
     _r: { r0:0, r1:0, r2:0, r3:0, r4:0, r5:0, r6:0, r7:0, r8:0, r9:0, r10:0, r11:0, r12:0, r13:0, r14:0, pc:0, sprs:0, nzcv: 0, ift: 0},
     execute: function() {},
@@ -48,6 +52,9 @@ describe('Model', () => {
     assert.equal(cpuMock.getNZCV(), 0);
     assert.equal(cpuMock.getIFT(), 0);
     assert.deepEqual(updatedRegisters, { cpsr: 0} );
+  });
+  it('should get a memory page', () => {
+    assert.equal(model.getMemoryPage().length, c.MEMORY_PAGE_LINES * c.BYTES_PER_MEMORY_LINE);
   });
   it('should execute and return the updated registers only', () => {
     cpuMock.execute = function () {

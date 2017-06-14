@@ -16,4 +16,7 @@ export const FLAG_BITS = {N: 3, Z: 2, C: 1, V: 0, I: 2, F: 1, T: 0};
 // UI specific
 export const INSTR_ON_UI = 20;
 export const INSTR_ON_SCROLL = 8;
+export const MEMORY_PAGE_LINES = 16;
+export const BYTES_PER_MEMORY_LINE = 16;
+
 export const ENTER_KEYCODE = 13;

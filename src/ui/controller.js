@@ -21,10 +21,12 @@ export default class Controller {
     this._view.bind('onProgramScroll', (delta) => this.onProgramScroll(delta));
     this._view.bind('setProgramLine', (line) => this.setProgramLine(line) );
     this._view.bind('onKeyDownProgramLine', (line) => this.setProgramLine(line) );
+    this._view.bind('setMemoryLine', (line) => this.setMemoryLine(line) );
+    this._view.bind('onKeyDownMemoryLine', (line) => this.setMemoryLine(line) );
     // Renderings
-    this.renderProgram();
-    this._renderMemory();
-    this._view.render('controls', { run: false, step: false});
+    this._model.setProgramLine(0, (line) => this._renderProgram(line));
+    this._model.setMemoryLine(0, (line) => this._renderMemory(line));
+    this._view.render('controls', { run: false, step: false}); // FIXME: update through model
   }
 
   /**
@@ -32,9 +34,9 @@ export default class Controller {
    */
   load(bios) {
     this._model.setBIOS(bios);
-    this._model.boot( (registers) => {
+    this._model.boot( (registers, programLine, memoryLine) => {
       this._view.render('controls', {run: true, step: true});
-      this.renderState(registers);
+      this.renderState(registers, programLine, memoryLine);
     });
   }
 
@@ -42,7 +44,7 @@ export default class Controller {
    * Executes one instruction
    */
   execute() {
-    this._model.execute( (registers) => this.renderState(registers) );
+    this._model.execute( (registers, programLine, memoryLine) => this.renderState(registers, programLine, memoryLine) );
   }
 
   /**
@@ -67,16 +69,21 @@ export default class Controller {
 
   /**
    * @param {Object} registers
+   * @param {number} programLine
+   * @param {number} memoryLine
    */
-  renderState(registers) {
-    this.renderProgram();
-    this._renderMemory();
+  renderState(registers, programLine, memoryLine) {
+    this._renderProgram(programLine);
+    this._renderMemory(memoryLine);
     this._view.render('cpu', registers);
   }
 
-  renderProgram() {
+  /**
+   * @param {number} offset
+   * @private
+   */
+  _renderProgram(offset) {
     const pc = this._model.getPC();
-    const offset = this._model.getProgramLine();
     const instrs = this._model.getInstrs();
     this._view.render('program', { instrs, offset });
     this._view.render('currentInstr', { offset, pc });
@@ -96,7 +103,7 @@ export default class Controller {
       }
     }
     if (!Model.isValidAddress(newLine + c.INSTR_ON_UI*c.ARM_INSTR_LENGTH - 1)) return;
-    this._model.setProgramLine(newLine, () => this.renderProgram());
+    this._model.setProgramLine(newLine, (line) => this._renderProgram(line));
   }
 
   /**
@@ -111,13 +118,22 @@ export default class Controller {
     if (!Model.isValidAddress(programLine + c.INSTR_ON_UI*c.ARM_INSTR_LENGTH - 1)) {
       programLine = c.MEMORY_SIZE + c.EXT_MEMORY_SIZE - c.INSTR_ON_UI*c.ARM_INSTR_LENGTH; // default to max
     }
-    this._model.setProgramLine(programLine, () => this.renderProgram());
+    this._model.setProgramLine(programLine, (programLine) => this._renderProgram(programLine));
   }
 
   /**
+   * @param hexString
+   */
+  setMemoryLine(hexString) {
+    const line = Utils.hexStrToNum(hexString);
+    this._model.setMemoryLine(line, (line) => this._renderMemory(line));
+  }
+
+  /**
+   * @param {number} offset
    * @private
    */
-  _renderMemory() {
-    this._view.render('memory', this._model.getMemory());
+  _renderMemory(offset) {
+    this._view.render('memory', {memory: this._model.getMemoryPage(), offset});
   }
 }
