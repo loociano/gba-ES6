@@ -125,10 +125,9 @@ export default class ARM7TDMI {
    */
   _execute() {
     if (this._decoded !== null) {
-      const addr = this._decoded.addr;
       const op = this._decoded.op;
       if (this._opcodes[op]) {
-        Logger.instr(addr, op, this._decoded);
+        Logger.instr(this._decoded.addr, this._decoded.toString);
         this._opcodes[op].call(this, this._decoded);
       } else {
         Logger.info(`${op} unimplemented`);

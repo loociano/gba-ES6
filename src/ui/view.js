@@ -249,7 +249,7 @@ export default class View {
     for(let i = 0; i < this.$programInstrs.length; i++) {
       let $li = this.$programInstrs[i];
       const pc = i*4 + offset;
-      $li.innerText = `${Utils.to32hex(pc)} ${Utils.to32hex(memory[i])}  ${Decoder.decodeToString(pc, memory[i])}`;
+      $li.innerText = `${Utils.to32hex(pc)} ${Utils.to32hex(memory[i])}  ${Decoder.decode(pc, memory[i]).toString}`;
     }
   }
 
