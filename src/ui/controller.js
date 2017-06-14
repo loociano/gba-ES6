@@ -36,7 +36,7 @@ export default class Controller {
     this._model.setBIOS(bios);
     this._model.boot( (registers, programLine, memoryLine) => {
       this._view.render('controls', {run: true, step: true});
-      this.renderState(registers, programLine, memoryLine);
+      this._renderState(registers, programLine, memoryLine);
     });
   }
 
@@ -44,7 +44,7 @@ export default class Controller {
    * Executes one instruction
    */
   execute() {
-    this._model.execute( (registers, programLine, memoryLine) => this.renderState(registers, programLine, memoryLine) );
+    this._model.execute( (registers, programLine, memoryLine) => this._renderState(registers, programLine, memoryLine) );
   }
 
   /**
@@ -65,28 +65,6 @@ export default class Controller {
    */
   setFlag(flag, value) {
     this._model.setFlag(flag, value, (registers) => this._view.render('cpu', registers));
-  }
-
-  /**
-   * @param {Object} registers
-   * @param {number} programLine
-   * @param {number} memoryLine
-   */
-  renderState(registers, programLine, memoryLine) {
-    this._renderProgram(programLine);
-    this._renderMemory(memoryLine);
-    this._view.render('cpu', registers);
-  }
-
-  /**
-   * @param {number} offset
-   * @private
-   */
-  _renderProgram(offset) {
-    const pc = this._model.getPC();
-    const instrs = this._model.getInstrs();
-    this._view.render('program', { instrs, offset });
-    this._view.render('currentInstr', { offset, pc });
   }
 
   /**
@@ -127,6 +105,29 @@ export default class Controller {
   setMemoryLine(hexString) {
     const line = Utils.hexStrToNum(hexString);
     this._model.setMemoryLine(line, (line) => this._renderMemory(line));
+  }
+
+  /**
+   * @param {Object} registers
+   * @param {number} programLine
+   * @param {number} memoryLine
+   * @private
+   */
+  _renderState(registers, programLine, memoryLine) {
+    this._renderProgram(programLine);
+    this._renderMemory(memoryLine);
+    this._view.render('cpu', registers);
+  }
+
+  /**
+   * @param {number} offset
+   * @private
+   */
+  _renderProgram(offset) {
+    const pc = this._model.getPC();
+    const instrs = this._model.getInstrs();
+    this._view.render('program', { instrs, offset });
+    this._view.render('currentInstr', { offset, pc });
   }
 
   /**
