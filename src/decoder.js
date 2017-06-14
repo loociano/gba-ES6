@@ -10,6 +10,7 @@ export default class Decoder {
    * @return {Object}
    */
   static decode(addr, word) {
+    const cond = c.CONDS[(word >>> 28 & 0xf)];
     switch (word >>> 24 & 0xf) {
       case 0xa: // Branch
       case 0xb:
@@ -18,7 +19,7 @@ export default class Decoder {
       case 1:
       case 2:
       case 3:
-        return Decoder._decodeDataProc(addr, word);
+        return Decoder._decodeDataProc(addr, word, cond);
       case 4: // SingleDataTransfer
       case 5:
         return Decoder._decodeDataTransfer(addr, word);
@@ -52,10 +53,11 @@ export default class Decoder {
   /**
    * @param {number} addr
    * @param {number} word
+   * @param {string} cond
    * @return {Object} instruction parameters
    * @private
    */
-  static _decodeDataProc(addr, word) {
+  static _decodeDataProc(addr, word, cond) {
     let op, Rd, Rn, Rm, Op2 = 0, Psr, toString;
     const immediate = word >>> 25 & 1 === 1;
     const opcode = word >>> 21 & 0xf;
@@ -93,26 +95,28 @@ export default class Decoder {
     }
     let prefix = '';
     if (typeof Op2 === 'number') prefix = '0x';
+    if (cond === 'al') cond = '';
     switch(opcode) {
       case 8:
       case 9:
       case 0xa:
       case 0xb:
         if (op === 'mrs' || op === 'msr') {
-          toString = `${op} ${Rd},${Psr}`;
+          toString = `${op}${cond} ${Rd},${Psr}`;
         } else {
-          toString = `${op} ${Rn},${prefix}${Utils.toHex(Op2)}`;
+          toString = `${op}${cond} ${Rn},${prefix}${Utils.toHex(Op2)}`;
         }
         break;
       case 0xd:
       case 0xf:
-        toString = `${op} ${Rd},${prefix}${Utils.toHex(Op2)}`;
+        toString = `${op}${cond} ${Rd},${prefix}${Utils.toHex(Op2)}`;
         break;
       default:
-        toString = `${op} ${Rd},${Rn},${prefix}${Utils.toHex(Op2)}`;
+        toString = `${op}${cond} ${Rd},${Rn},${prefix}${Utils.toHex(Op2)}`;
         break;
     }
-    return {addr, op, Rd, Rn, Op2, setCondition, Psr, toString};
+    if (cond === '') cond = 'al';
+    return {addr, op, Rd, Rn, Op2, setCondition, Psr, cond, toString};
   }
 
   /**

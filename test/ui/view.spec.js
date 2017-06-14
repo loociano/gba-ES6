@@ -278,8 +278,8 @@ describe('View', () => {
       view.render('program', {instrs: empty, offset: 0});
       $programLines = dom.window.document.querySelectorAll('#program ul li');
       assert.equal($programLines.length, c.INSTR_ON_UI);
-      assert.equal($programLines[0].innerText,  '00000000 00000000  and r0,r0,r0');
-      assert.equal($programLines[c.INSTR_ON_UI-1].innerText, '0000004c 00000000  and r0,r0,r0');
+      assert.equal($programLines[0].innerText,  '00000000 00000000  andeq r0,r0,r0');
+      assert.equal($programLines[c.INSTR_ON_UI-1].innerText, '0000004c 00000000  andeq r0,r0,r0');
     });
     it('should render program instructions', () => {
       const empty = new Uint8Array(20);
@@ -300,7 +300,7 @@ describe('View', () => {
 
       view.render('program', {instrs: empty, offset: 0});
       assert.equal($programLines.length, c.INSTR_ON_UI, 'Should override the previous program');
-      assert.equal($programLines[0].innerText,  '00000000 00000000  and r0,r0,r0');
+      assert.equal($programLines[0].innerText,  '00000000 00000000  andeq r0,r0,r0');
     });
     it('should bind onmousewheel (scroll)', () => {
       let called = false;

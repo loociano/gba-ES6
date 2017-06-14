@@ -15,6 +15,7 @@ export const ROM_HEADER_TITLE_END = 0xac;
 export const ARM_INSTR_LENGTH = 4;
 export const ALU_OPCODES = ['and', 'eor', 'sub', 'rsb', 'add', 'adc', 'sbc', 'rsc', 'tst', 'teq', 'cmp', 'cmn', 'orr', 'mov', 'bic', 'mvn'];
 export const FLAG_BITS = {N: 3, Z: 2, C: 1, V: 0, I: 2, F: 1, T: 0};
+export const CONDS = ['eq', 'ne', 'cs', 'cc', 'mi', 'pl', 'vs', 'vc', 'hi', 'ls', 'ge', 'lt', 'gt', 'le', 'al', 'nv'];
 
 // UI specific
 export const INSTR_ON_UI = 20;
