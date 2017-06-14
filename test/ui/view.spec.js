@@ -266,11 +266,10 @@ describe('View', () => {
     });
     it('should bind onmousewheel (scroll)', () => {
       let called = false;
-      const handler = () => {called = true; };
       const evt = dom.window.document.createEvent('HTMLEvents');
       evt.initEvent('wheel', false, true);
 
-      view.bind('onProgramScroll', handler);
+      view.bind('onProgramScroll', () => {called = true; });
       $program.dispatchEvent(evt);
       assert.isTrue(called);
     });

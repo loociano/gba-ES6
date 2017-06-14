@@ -85,6 +85,7 @@ export default class View {
    * @param {Function} handler
    */
   static onMouseWheel(evt, handler) {
+    evt.preventDefault();
     const delta = (evt.wheelDeltaY) > 0 ? -c.INSTR_ON_SCROLL : c.INSTR_ON_SCROLL;
     handler(delta);
   }
