@@ -540,5 +540,12 @@ describe('ARM7TDMI tests', () => {
       cpu.execute();
       assert.equal(cpu.getR12(), 0xf0000000);
     });
+    it('should MSR', () => {
+      cpu.setR12(0xf00000ff);
+      cpu.setDecoded({op: 'msr', Rm: 'r12', Psr: 'cpsr', _flg: true, _ctl: true});
+      cpu.execute();
+      assert.equal(cpu.getNZCV(), 0b1111);
+      assert.equal(cpu.getIFT(), 0b111);
+    });
   });
 });

@@ -21,6 +21,7 @@ export default class ARM7TDMI {
       'ldr': this._ldr,
       'mov': this._mov,
       'mrs': this._mrs,
+      'msr': this._msr,
       'orr': this._orr,
       'teq': this._teq
     };
@@ -51,7 +52,7 @@ export default class ARM7TDMI {
   }
 
   getIFT() {
-    return this._r.cpsr >>> 5;
+    return this._r.cpsr >>> 5 & 7;
   }
 
   setIFT(bits) {
@@ -297,6 +298,15 @@ export default class ARM7TDMI {
 
   _mrs(args) {
     this._r[args.Rd] = this._r.cpsr;
+  }
+
+  _msr(args) {
+    if (args._flg) {
+      this._r[args.Psr] = ((this._r[args.Psr] & 0x0fffffff) | (this._r[args.Rm] & 0xf0000000)) >>> 0;
+    }
+    if (args._ctl) {
+      this._r[args.Psr] = ((this._r[args.Psr] & 0xffffff00) | (this._r[args.Rm] & 0xff)) >>> 0;
+    }
   }
 
   _orr(args) {

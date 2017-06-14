@@ -84,7 +84,8 @@ describe('Decoder', () => {
         {addr: 0, op: 'mrs', Rd: 'r12', Psr: 'cpsr', toString: 'mrs r12,cpsr'});
     });
     it('should decode MSR', () => {
-
+      assert.include(Decoder.decode(0, 0xe129f00c),
+        {addr: 0, op: 'msr', Rm: 'r12', Psr: 'cpsr', _flg: true, _ctl: true, toString: 'msr cpsr_fc,r12'});
     });
     it('should decode OR', () => {
       assert.include(Decoder.decode(0, 0xe38cc0c0),

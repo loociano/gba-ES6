@@ -58,8 +58,8 @@ export default class Decoder {
    * @private
    */
   static _decodeDataProc(addr, word, cond) {
-    let op, Rd, Rn, Rm, Op2 = 0, Psr, toString;
-    const immediate = word >>> 25 & 1 === 1;
+    let op, Rd, Rn, Rm, Op2 = 0, Psr, _flg, _ctl, toString;
+    const immediate = (word >>> 25 & 1) === 1;
     const opcode = word >>> 21 & 0xf;
     let setCondition = (word >>> 20 & 1) === 1;
     Rn = `r${word >>> 16 & 0xf}`;
@@ -88,8 +88,16 @@ export default class Decoder {
         // PRS instructions
         op = (word >>> 21 & 1) === 0 ? 'mrs' : 'msr';
         Psr = (word >>> 22 & 1) === 0 ? 'cpsr' : 'spsr';
-        if (Rn !== 'pc') {
+        if (op === 'mrs' && Rn !== 'pc') {
           op = 'swp';
+        } else if (op === 'msr') {
+          _flg = (word >>> 19 & 1) === 1;
+          _ctl = (word >>> 16 & 1) === 1;
+          if (immediate) {
+            // TODO
+          } else {
+            Rm = `r${word & 0xf}`;
+          }
         }
       }
     }
@@ -101,8 +109,13 @@ export default class Decoder {
       case 9:
       case 0xa:
       case 0xb:
-        if (op === 'mrs' || op === 'msr') {
+        if (op === 'mrs') {
           toString = `${op}${cond} ${Rd},${Psr}`;
+        } else if (op === 'msr') {
+          let fields = '';
+          if (_flg) fields += 'f';
+          if (_ctl) fields += 'c';
+          toString = `${op}${cond} ${Psr}_${fields},${Rm}`;
         } else {
           toString = `${op}${cond} ${Rn},${prefix}${Utils.toHex(Op2)}`;
         }
@@ -116,7 +129,7 @@ export default class Decoder {
         break;
     }
     if (cond === '') cond = 'al';
-    return {addr, op, Rd, Rn, Op2, setCondition, Psr, cond, toString};
+    return {addr, op, Rd, Rn, Rm, Op2, _flg, _ctl, setCondition, Psr, cond, toString};
   }
 
   /**
