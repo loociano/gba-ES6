@@ -40,9 +40,6 @@ describe('ARM7TDMI tests', () => {
       this._decoded = array;
     };
   });
-  describe('Initialization', () => {
-
-  });
   describe('Registrers and flags', () => {
     it('should read NZCV flags', () => {
       cpu.setNZCV(0b1111);
@@ -321,20 +318,21 @@ describe('ARM7TDMI tests', () => {
     });
   });
   describe('Data Processing (ALU)', () => {
-    it('should test exclusive (XOR)', () => {
-      const pc = cpu.getPC();
+    it('should test exclusive (TEQ)', () => {
       cpu.setR0(1);
-      mmuMock.writeWord(0xe3300001, pc); // teq r0,#1
-
-      cpu.execute();
-      assert.deepEqual(cpu.getFetched(), [pc, 0xe3300001]);
-
-      cpu.execute();
-      assert.include(cpu.getDecoded(), {addr: pc, op: 'teq', Rd: 'r0', Rn: 'r0', Op2: 1});
+      cpu.setDecoded({op: 'teq', Rn: 'r0', Op2: 1});
 
       cpu.execute(); // 1 XOR 1 = 0
       assert.equal(cpu.getR0(), 1, 'register unchanged');
       assert.equal(cpu.getNZCV(), 0b0100); // V unaffected
+    });
+    it('should TEQ with negative result', () => {
+      cpu.setR0(0xffffffff);
+      cpu.setDecoded({op: 'teq', Rn: 'r0', Op2: 0});
+
+      cpu.execute(); // 1 XOR 1 = 0
+      assert.equal(cpu.getR0(), 0xffffffff, 'register unchanged');
+      assert.equal(cpu.getNZCV(), 0b1000);
     });
   });
 });

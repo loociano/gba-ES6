@@ -197,7 +197,10 @@ export default class ARM7TDMI {
    */
   _teq(args) {
     const xor = (this._r[args.Rn] ^ args.Op2) >>> 0;
+    this._setN(xor >>> 31 === 1);
     this._setZ(xor === 0);
+    // TODO: C
+    // V unaffected
   }
 
   /**
