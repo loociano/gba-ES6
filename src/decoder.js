@@ -58,6 +58,7 @@ export default class Decoder {
     let op, Rd, Rn, Rm, Op2 = 0, toString;
     const immediate = word >>> 25 & 1 === 1;
     const opcode = word >>> 21 & 0xf;
+    let setCondition = (word >>> 20 & 1) === 1;
     Rn = `r${word >>> 16 & 0xf}`;
     Rd = `r${word >>> 12 & 0xf}`;
     if (Rn === 'r15') Rn = 'pc';
@@ -79,6 +80,10 @@ export default class Decoder {
       }
     }
     op = c.ALU_OPCODES[opcode];
+    if (opcode > 7 && opcode < 0xc) {
+      if (!setCondition) Logger.info(`${op} requires S=1`);
+      setCondition = true;
+    }
     let prefix = '';
     if (typeof Op2 === 'number') prefix = '0x';
     switch(opcode) {
@@ -96,7 +101,7 @@ export default class Decoder {
         toString = `${op} ${Rd},${Rn},${prefix}${Utils.toHex(Op2)}`;
         break;
     }
-    return {addr, op, Rd, Rn, Op2, toString};
+    return {addr, op, Rd, Rn, Op2, setCondition, toString};
   }
 
   /**

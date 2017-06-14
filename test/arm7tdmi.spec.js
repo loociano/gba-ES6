@@ -2,6 +2,7 @@ import ARM7TDMI from '../src/arm7tdmi';
 import MMU from '../src/mmu';
 import * as c from '../src/constants';
 import Utils from '../src/utils';
+import Logger from '../src/logger';
 import {describe, beforeEach, it} from 'mocha';
 import {assert} from 'chai';
 
@@ -9,6 +10,7 @@ describe('ARM7TDMI tests', () => {
   let cpu;
   const rom = new Uint8Array(c.EXT_MEMORY_SIZE);
   beforeEach(() => {
+    Logger.instr = function() {};
     cpu = new ARM7TDMI(new MMU(rom));
     /**
      * @param {number} word
@@ -266,33 +268,59 @@ describe('ARM7TDMI tests', () => {
     it('should store an immediate value into a register', () => {
       const pc = cpu.getPC();
       cpu.writeWord(0x04e0a003, pc); // mov r14,4
-      cpu.writeWord(0x00e0a003, pc+4); // mov r14,0  to test zero flag
-      cpu.writeWord(0x01c3a003, pc+8); // mov r12,0x4000000 test rotated immediate
+      cpu.writeWord(0x00e0b003, pc+4); // mov r14,0  to test zero flag
+      cpu.writeWord(0x01c3b003, pc+8); // mov r12,0x4000000 test rotated immediate
 
       cpu.execute();
       assert.deepEqual(cpu.getFetched(), [pc, 0x03a0e004]);
       assert.equal(cpu.getPC(), pc + 4);
 
       cpu.execute();
-      assert.deepEqual(cpu.getFetched(), [pc+4, 0x03a0e000]);
-      assert.include(cpu.getDecoded(), {addr: pc, op: 'mov', Rd: 'r14', Rn: 'r0', Op2: 4});
+      assert.deepEqual(cpu.getFetched(), [pc+4, 0x03b0e000]);
+      assert.include(cpu.getDecoded(), {addr: pc, op: 'mov', Rd: 'r14', Op2: 4});
       assert.equal(cpu.getPC(), pc + 8);
 
-      cpu.execute();
-      assert.deepEqual(cpu.getFetched(), [pc+8, 0x03a0c301]);
-      assert.include(cpu.getDecoded(), {addr: pc+4, op: 'mov', Rd: 'r14', Rn: 'r0', Op2: 0});
+      cpu.execute(); // mov r14,4
+      assert.deepEqual(cpu.getFetched(), [pc+8, 0x03b0c301]);
+      assert.include(cpu.getDecoded(), {addr: pc+4, op: 'mov', Rd: 'r14', Op2: 0, setCondition: true});
       assert.equal(cpu.getR14(), 4);
       assert.equal(cpu.getNZCV(), 0b0000);
       assert.equal(cpu.getPC(), pc + 12);
 
-      cpu.execute();
-      assert.include(cpu.getDecoded(), {addr: pc+8, op: 'mov', Rd: 'r12', Rn: 'r0', Op2: 0x4000000});
+      cpu.execute(); // mov r14,0
+      assert.include(cpu.getDecoded(), {addr: pc+8, op: 'mov', Rd: 'r12', Op2: 0x4000000, setCondition: true});
       assert.equal(cpu.getR14(), 0);
       assert.equal(cpu.getNZCV(), 0b0100);
 
       cpu.execute();
       assert.equal(cpu.getR12(), 0x4000000);
       assert.equal(cpu.getNZCV(), 0b0000);
+    });
+    it('should update flags if S=1', () => {
+      const signed = 0x80000000;
+      cpu.setDecoded({op: 'mov', Rd: 'r14', Op2: 0, setCondition: true});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0);
+      assert.equal(cpu.getNZCV(), 0b0100);
+
+      cpu.setDecoded({op: 'mov', Rd: 'r14', Op2: signed, setCondition: true});
+      cpu.execute();
+      assert.equal(cpu.getR14(), signed);
+      assert.equal(cpu.getNZCV(), 0b1000);
+    });
+    it('should not affect flags if S=0', () => {
+      const flags = cpu.getNZCV();
+      const signed = 0x80000000;
+
+      cpu.setDecoded({op: 'mov', Rd: 'r14', Op2: 0, setCondition: false});
+      cpu.execute();
+      assert.equal(cpu.getR14(), 0);
+      assert.equal(cpu.getNZCV(), flags, 'unchanged');
+
+      cpu.setDecoded({op: 'mov', Rd: 'r14', Op2: signed, setCondition: false});
+      cpu.execute();
+      assert.equal(cpu.getR14(), signed);
+      assert.equal(cpu.getNZCV(), flags, 'unchanged');
     });
   });
   describe('Load', () => {

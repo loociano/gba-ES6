@@ -173,7 +173,10 @@ export default class ARM7TDMI {
     const Rd = args.Rd;
     const Op2 = args.Op2;
     this._r[Rd] = Op2;
-    this._setZ(Op2 === 0);
+    if (args.setCondition) {
+      this._setN(Op2 >>> 31 === 1);
+      this._setZ(Op2 === 0);
+    }
   }
 
   /**
