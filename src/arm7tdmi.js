@@ -9,7 +9,7 @@ import Utils from './utils';
 export default class ARM7TDMI {
 
   /**
-   * @param {MMU} MMU
+   * @param {MMU|MMUMock} MMU
    */
   constructor(MMU) {
     this._mmu = MMU;

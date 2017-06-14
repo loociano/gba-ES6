@@ -1,30 +1,16 @@
 import ARM7TDMI from '../src/arm7tdmi';
-import MMU from '../src/mmu';
-import * as c from '../src/constants';
+import MMUMock from './mocks/mmuMock';
 import Utils from '../src/utils';
 import Logger from '../src/logger';
 import {describe, beforeEach, it} from 'mocha';
 import {assert} from 'chai';
 
 describe('ARM7TDMI tests', () => {
-  let cpu;
-  const rom = new Uint8Array(c.EXT_MEMORY_SIZE);
+  let cpu, mmuMock;
   beforeEach(() => {
     Logger.instr = function() {};
-    cpu = new ARM7TDMI(new MMU(rom));
-    /**
-     * @param {number} word
-     * @param {number} offset
-     */
-    cpu.writeWord = function(word, offset) {
-      this._mmu.writeWord(word, offset);
-    };
-    /**
-     * @param {number} offset
-     */
-    cpu.readWord = function(offset) {
-      return this._mmu.readWord(offset);
-    };
+    mmuMock = new MMUMock();
+    cpu = new ARM7TDMI(mmuMock);
     /**
      * @param {number} pc
      */
@@ -53,15 +39,9 @@ describe('ARM7TDMI tests', () => {
     cpu.setDecoded = function(array) {
       this._decoded = array;
     };
-
-    cpu.writeWord(0, 0); // 0x0 nop
-    cpu.writeWord(0, 4); // 0x4 nop
   });
-  describe('Read/Write memory', () => {
-    it('should read a memory array', () => {
-      cpu.writeWord(0x01020304, 0x100);
-      assert.equal(cpu.readWord(0x100), 0x04030201);
-    });
+  describe('Initialization', () => {
+
   });
   describe('Registrers and flags', () => {
     it('should read NZCV flags', () => {
@@ -78,9 +58,9 @@ describe('ARM7TDMI tests', () => {
   describe('Instruction pipeline', () => {
     it('should bootstrap correctly', () => {
       const pc = 0;
-      cpu.writeWord(0x000051e3, pc); // cmp r1,#0
-      cpu.writeWord(0x000052e3, pc+4); // cmp r2,#0
-      cpu.writeWord(0x000053e3, pc+8);
+      mmuMock.writeWord(0xe3510000, pc); // cmp r1,#0
+      mmuMock.writeWord(0xe3520000, pc+4); // cmp r2,#0
+      mmuMock.writeWord(0xe3530000, pc+8);
       cpu.setR1(1);
       cpu.setR2(2);
       cpu.setR3(3);
@@ -99,8 +79,8 @@ describe('ARM7TDMI tests', () => {
       cpu.setR1(1);
       cpu.setR2(2);
       cpu.setR3(3);
-      cpu.writeWord(0x000053e3, pc + 8); // cmp r3,#0
-      cpu.writeWord(0x000054e3, pc + 12); // cmp r4,#0
+      mmuMock.writeWord(0xe3530000, pc + 8); // cmp r3,#0
+      mmuMock.writeWord(0xe3540000, pc + 12); // cmp r4,#0
 
       cpu.execute();
       assert.equal(cpu.getPC(), pc + 12);
@@ -117,9 +97,9 @@ describe('ARM7TDMI tests', () => {
       cpu.setDecoded({addr: 0, op:'???'});
       cpu.setFetched(4, 0xffffffff); // rubish
       cpu.setPC(pc + 8);
-      cpu.writeWord(0x180000ea, 8); // b 0x70
-      cpu.writeWord(0x00005ee3, 0x70); // cmp r14,#0
-      cpu.writeWord(0xffffffff, 0x74); // rubbish
+      mmuMock.writeWord(0xea000018, 8); // b 0x70
+      mmuMock.writeWord(0xe35e0000, 0x70); // cmp r14,#0
+      mmuMock.writeWord(0xffffffff, 0x74); // rubbish
 
       cpu.execute();
       assert.deepEqual(cpu.getFetched(), [8, 0xea000018]);
@@ -140,13 +120,13 @@ describe('ARM7TDMI tests', () => {
   describe('Branch', () => {
     it('should branch forward', () => {
       const pc = 0;
-      const offset = 0x0a000000; // 10
+      const offset = 0xa; // 10
       const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + 8 + 8;
-      cpu.writeWord(0xffffffff, 4); //rubish
-      cpu.writeWord(0xffffffff, 0x38); //rubish
-      cpu.writeWord(0xffffffff, 0x3c); //rubish
-      cpu.writeWord(0xffffffff, 0x40); //rubish
-      cpu.writeWord(0x000000ea + offset, 8);
+      mmuMock.writeWord(0xffffffff, 4); //rubish
+      mmuMock.writeWord(0xffffffff, 0x38); //rubish
+      mmuMock.writeWord(0xffffffff, 0x3c); //rubish
+      mmuMock.writeWord(0xffffffff, 0x40); //rubish
+      mmuMock.writeWord(0xea000000 + offset, 8);
       cpu.boot();
 
       cpu.execute(); // fetch
@@ -172,13 +152,13 @@ describe('ARM7TDMI tests', () => {
     });
     it('should branch backwards', () => {
       const pc = 0x100;
-      const offset = 0xf6ffff00; // -10
-      const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + pc+8 + 8;
+      const offset = 0x00fffff6; // -10
+      const calcOffset = Utils.toSigned(offset)*4 + pc+8 + 8;
       cpu.setPC(pc + 8);
-      cpu.writeWord(0x000000ea + offset, 0x108);
-      cpu.writeWord(0xffffffff, 0xe8); //rubish
-      cpu.writeWord(0xffffffff, 0xec); //rubish
-      cpu.writeWord(0xffffffff, 0xf0); //rubish
+      mmuMock.writeWord(0xea000000 + offset, 0x108);
+      mmuMock.writeWord(0xffffffff, 0xe8); //rubish
+      mmuMock.writeWord(0xffffffff, 0xec); //rubish
+      mmuMock.writeWord(0xffffffff, 0xf0); //rubish
 
       cpu.execute();
       assert.deepEqual(cpu.getFetched(), [0x108, 0xeafffff6]);
@@ -202,10 +182,10 @@ describe('ARM7TDMI tests', () => {
     });
     it('should branch to the same address (stuck)', () => {
       const pc = 0x100;
-      const offset = 0xfeffff00; // -2
-      const calcOffset = Utils.toSigned(Utils.reverseBytes(offset))*4 + pc+8 + 8;
+      const offset = 0x00fffffe; // -2
+      const calcOffset = Utils.toSigned(offset)*4 + pc+8 + 8;
       cpu.setPC(pc + 8);
-      cpu.writeWord(0x000000ea + offset, 0x108);
+      mmuMock.writeWord(0xea000000 + offset, 0x108);
 
       cpu.execute();
       assert.deepEqual(cpu.getFetched(), [0x108, 0xeafffffe]);
@@ -267,9 +247,9 @@ describe('ARM7TDMI tests', () => {
   describe('Move', () => {
     it('should store an immediate value into a register', () => {
       const pc = cpu.getPC();
-      cpu.writeWord(0x04e0a003, pc); // mov r14,4
-      cpu.writeWord(0x00e0b003, pc+4); // mov r14,0  to test zero flag
-      cpu.writeWord(0x01c3b003, pc+8); // mov r12,0x4000000 test rotated immediate
+      mmuMock.writeWord(0x03a0e004, pc); // mov r14,4
+      mmuMock.writeWord(0x03b0e000, pc+4); // mov r14,0  to test zero flag
+      mmuMock.writeWord(0x03b0c301, pc+8); // mov r12,0x4000000 test rotated immediate
 
       cpu.execute();
       assert.deepEqual(cpu.getFetched(), [pc, 0x03a0e004]);
@@ -327,11 +307,8 @@ describe('ARM7TDMI tests', () => {
     it('should load a value from memory to register', () => {
       const pc = cpu.getPC();
       cpu.setR1(0x08000000);
-      cpu.writeWord(0x000391e5, pc); // ldr r0,[r1,0x300]
-      rom[0x300] = 0x12;
-      rom[0x301] = 0x34;
-      rom[0x302] = 0x56;
-      rom[0x303] = 0x78;
+      mmuMock.writeWord(0xe5910300, pc); // ldr r0,[r1,0x300]
+      mmuMock.writeWord(0x12345678, 0x08000300);
 
       cpu.execute();
       assert.deepEqual(cpu.getFetched(), [pc, 0xe5910300]);
@@ -340,14 +317,14 @@ describe('ARM7TDMI tests', () => {
       assert.include(cpu.getDecoded(), {addr: pc, op: 'ldr', Rd: 'r0', Rn: 'r1', pre: true, offset: 0x300});
 
       cpu.execute();
-      assert.equal(cpu.getR0(), 0x78563412);
+      assert.equal(cpu.getR0(), 0x12345678);
     });
   });
   describe('Data Processing (ALU)', () => {
     it('should test exclusive (XOR)', () => {
       const pc = cpu.getPC();
       cpu.setR0(1);
-      cpu.writeWord(0x010030e3, pc); // teq r0,#1
+      mmuMock.writeWord(0xe3300001, pc); // teq r0,#1
 
       cpu.execute();
       assert.deepEqual(cpu.getFetched(), [pc, 0xe3300001]);
