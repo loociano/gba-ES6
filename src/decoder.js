@@ -60,6 +60,8 @@ export default class Decoder {
     const opcode = word >>> 21 & 0xf;
     Rn = `r${word >>> 16 & 0xf}`;
     Rd = `r${word >>> 12 & 0xf}`;
+    if (Rn === 'r15') Rn = 'pc';
+    if (Rd === 'r15') Rd = 'pc';
     if (immediate) {
       Op2 = Utils.ror(word & 0xff, (word >>> 8 & 0xf)*2);
     } else {

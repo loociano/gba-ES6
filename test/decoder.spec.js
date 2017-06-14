@@ -10,13 +10,25 @@ describe('Decoder', () => {
     const addr = 8;
     assert.deepEqual(Decoder.decode(addr, 0xea000018), {addr, op: 'b', sOffset: 0x70, toString: 'b 0x70'});
   });
-  it('should decode Compare', () => {
-    const addr = 0x70;
-    assert.deepEqual(Decoder.decode(addr, 0xe35e0000), {addr, op: 'cmp', Rd: 'r0', Rn: 'r14', Op2: 0, toString: 'cmp r14,0x00'});
+  describe('Compare (CMP)', () => {
+    it('should decode Compare', () => {
+      const addr = 0x70;
+      assert.deepEqual(Decoder.decode(addr, 0xe35e0000), {addr, op: 'cmp', Rd: 'r0', Rn: 'r14', Op2: 0, toString: 'cmp r14,0x00'});
+    });
+    it('should decode Compare with Rn=pc', () => {
+      const addr = 0x70;
+      assert.deepEqual(Decoder.decode(addr, 0xe35f0000), {addr, op: 'cmp', Rd: 'r0', Rn: 'pc', Op2: 0, toString: 'cmp pc,0x00'});
+    });
   });
-  it('should decode Move', () => {
-    const addr = 0;
-    assert.deepEqual(Decoder.decode(addr, 0xe3a0e004), {addr, op: 'mov', Rd: 'r14', Rn: 'r0', Op2: 4, toString: 'mov r14,0x04'});
+  describe('Move (MVN)', () => {
+    it('should decode Move', () => {
+      const addr = 0;
+      assert.deepEqual(Decoder.decode(addr, 0xe3a0e004), {addr, op: 'mov', Rd: 'r14', Rn: 'r0', Op2: 4, toString: 'mov r14,0x04'});
+    });
+    it('should decode Move with Rd=pc', () => {
+      const addr = 0;
+      assert.deepEqual(Decoder.decode(addr, 0xe3a0f004), {addr, op: 'mov', Rd: 'pc', Rn: 'r0', Op2: 4, toString: 'mov pc,0x04'});
+    });
   });
   it('should decode Load', () => {
     const addr = 0;
