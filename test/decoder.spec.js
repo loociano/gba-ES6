@@ -13,17 +13,17 @@ describe('Decoder', () => {
   describe('Compare (CMP)', () => {
     it('should decode Compare', () => {
       const addr = 0x70;
-      assert.deepEqual(Decoder.decode(addr, 0xe35e0000), {addr, op: 'cmp', Rd: 'r0', Rn: 'r14', Op2: 0, setCondition: true, toString: 'cmp r14,0x00'});
+      assert.include(Decoder.decode(addr, 0xe35e0000), {addr, op: 'cmp', Rd: 'r0', Rn: 'r14', Op2: 0, setCondition: true, toString: 'cmp r14,0x00'});
     });
     it('should decode Compare with Rn=pc', () => {
       const addr = 0x70;
-      assert.deepEqual(Decoder.decode(addr, 0xe35f0000), {addr, op: 'cmp', Rd: 'r0', Rn: 'pc', Op2: 0, setCondition: true, toString: 'cmp pc,0x00'});
+      assert.include(Decoder.decode(addr, 0xe35f0000), {addr, op: 'cmp', Rd: 'r0', Rn: 'pc', Op2: 0, setCondition: true, toString: 'cmp pc,0x00'});
     });
   });
   describe('Move (MVN)', () => {
     it('should decode Move', () => {
       const addr = 0;
-      assert.deepEqual(Decoder.decode(addr, 0xe3a0e004), {addr, op: 'mov', Rd: 'r14', Rn: 'r0', Op2: 4, setCondition: false, toString: 'mov r14,0x04'});
+      assert.include(Decoder.decode(addr, 0xe3a0e004), {addr, op: 'mov', Rd: 'r14', Rn: 'r0', Op2: 4, setCondition: false, toString: 'mov r14,0x04'});
       assert.include(Decoder.decode(addr, 0xe3b0e004), {setCondition: true});
     });
     it('should decode Move with Rd=pc', () => {
@@ -40,11 +40,13 @@ describe('Decoder', () => {
   });
   it('should decode AND', () => {
     const addr = 0;
-    assert.deepEqual(Decoder.decode(addr, 0), {addr, op: 'and'/*FIXME:andeq*/, Rd: 'r0', Rn: 'r0', Op2: 'r0', setCondition: false, toString: 'and r0,r0,r0'});
+    assert.include(Decoder.decode(addr, 0), {addr, op: 'and'/*FIXME:andeq*/, Rd: 'r0', Rn: 'r0', Op2: 'r0', setCondition: false, toString: 'and r0,r0,r0'});
   });
-  it('should decode XOR', () => {
+  it('should decode TEQ', () => {
     const addr = 0;
-    assert.deepEqual(Decoder.decode(addr, 0xe3300001), {addr, op: 'teq', Rd: 'r0', Rn: 'r0', Op2: 1, setCondition: true, toString: 'teq r0,0x01'});
-    assert.include(Decoder.decode(addr, 0xe3200001), {setCondition: true}); // TST,TEQ,CMP,CMN must have setCondition=true
+    assert.include(Decoder.decode(addr, 0xe3300001), {addr, op: 'teq', Rn: 'r0', Op2: 1, setCondition: true, toString: 'teq r0,0x01'});
+  });
+  it('should decode MRS', () => {
+    assert.include(Decoder.decode(0, 0x010fc000), {addr: 0, op: 'mrs', Rd: 'r12', Psr: 'cpsr', toString: 'mrs r12,cpsr'});
   });
 });

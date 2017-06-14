@@ -335,4 +335,12 @@ describe('ARM7TDMI tests', () => {
       assert.equal(cpu.getNZCV(), 0b1000);
     });
   });
+  describe('PSR transfer', () => {
+    it('should MRS', () => {
+      cpu.setNZCV(0xf);
+      cpu.setDecoded({op: 'mrs', Rd: 'r12', Psr: 'cpsr'});
+      cpu.execute();
+      assert.equal(cpu.getR12(), 0xf0000000);
+    });
+  });
 });

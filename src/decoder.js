@@ -12,6 +12,7 @@ export default class Decoder {
   static decode(addr, word) {
     switch (word >>> 24 & 0xf) {
       case 0xa: // Branch
+      case 0xb:
         return Decoder._decodeBranch(addr, word);
       case 0: // DataProc
       case 1:
@@ -55,7 +56,7 @@ export default class Decoder {
    * @private
    */
   static _decodeDataProc(addr, word) {
-    let op, Rd, Rn, Rm, Op2 = 0, toString;
+    let op, Rd, Rn, Rm, Op2 = 0, Psr, toString;
     const immediate = word >>> 25 & 1 === 1;
     const opcode = word >>> 21 & 0xf;
     let setCondition = (word >>> 20 & 1) === 1;
@@ -81,8 +82,14 @@ export default class Decoder {
     }
     op = c.ALU_OPCODES[opcode];
     if (opcode > 7 && opcode < 0xc) {
-      if (!setCondition) Logger.info(`${op} requires S=1`);
-      setCondition = true;
+      if (!setCondition) {
+        // PRS instructions
+        op = (word >>> 21 & 1) === 0 ? 'mrs' : 'msr';
+        Psr = (word >>> 22 & 1) === 0 ? 'cpsr' : 'spsr';
+        if (Rn !== 'pc') {
+          op = 'swp';
+        }
+      }
     }
     let prefix = '';
     if (typeof Op2 === 'number') prefix = '0x';
@@ -91,7 +98,11 @@ export default class Decoder {
       case 9:
       case 0xa:
       case 0xb:
-        toString = `${op} ${Rn},${prefix}${Utils.toHex(Op2)}`;
+        if (op === 'mrs' || op === 'msr') {
+          toString = `${op} ${Rd},${Psr}`;
+        } else {
+          toString = `${op} ${Rn},${prefix}${Utils.toHex(Op2)}`;
+        }
         break;
       case 0xd:
       case 0xf:
@@ -101,7 +112,7 @@ export default class Decoder {
         toString = `${op} ${Rd},${Rn},${prefix}${Utils.toHex(Op2)}`;
         break;
     }
-    return {addr, op, Rd, Rn, Op2, setCondition, toString};
+    return {addr, op, Rd, Rn, Op2, setCondition, Psr, toString};
   }
 
   /**

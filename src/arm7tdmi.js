@@ -18,8 +18,9 @@ export default class ARM7TDMI {
       '???': this._nop,
       'b': this._b,
       'cmp': this._cmp,
-      'mov': this._mov,
       'ldr': this._ldr,
+      'mov': this._mov,
+      'mrs': this._mrs,
       'teq': this._teq
     };
     // {Array} [{number} pc, {number} word]
@@ -163,6 +164,14 @@ export default class ARM7TDMI {
     this._setZ(diff === 0);
     this._setC(!(Op2 > this._r[Rn]));
     this._setV(diff < -2147483648);
+  }
+
+  /**
+   * @param {Object} args
+   * @private
+   */
+  _mrs(args) {
+    this._r[args.Rd] = this._r.cpsr;
   }
 
   /**
