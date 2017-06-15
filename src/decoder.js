@@ -12,9 +12,6 @@ export default class Decoder {
   static decode(addr, word) {
     const cond = c.CONDS[(word >>> 28 & 0xf)];
     switch (word >>> 24 & 0xf) {
-      case 0xa: // Branch
-      case 0xb:
-        return Decoder._decodeBranch(addr, word);
       case 0: // DataProc
       case 1:
       case 2:
@@ -23,11 +20,62 @@ export default class Decoder {
       case 4: // SingleDataTransfer
       case 5:
         return Decoder._decodeDataTransfer(addr, word);
+      case 8:
+      case 9:
+        return Decoder._decodeBlockDataTransfer(addr, word, cond);
+      case 0xa: // Branch
+      case 0xb:
+        return Decoder._decodeBranch(addr, word);
       default:
         return Decoder._decodeUnknown(addr);
     }
   }
 
+  /**
+   * @param {number} addr
+   * @param {number} word
+   * @param {string} cond
+   * @return {Object}
+   * @private
+   */
+  static _decodeBlockDataTransfer(addr, word, cond) {
+    const L = (word >>> 20 & 1) === 1;
+    const Rn = `r${word >>> 16 & 0xf}`;
+    const Rlist = word & 0xffff;
+    const op = L ? 'pop' : 'push';
+
+    const toString = `${op} ${this.decodeRlist(Rlist)}`;
+    return {addr, cond, op, Rn, Rlist, toString};
+  }
+
+  /**
+   * @param {number} Rlist
+   * @return {string} stringyfied list of registers, shortened with dashes if they are contiguous.
+   */
+  static decodeRlist(Rlist) {
+    const result = [];
+    const stack = [];
+    for (let b = 0; b < 0x10; b++) {
+      if ((Rlist >>> b & 1) === 1) {
+        if (stack.length === 0) {
+          stack.push(b);
+        }
+      } else {
+        if (stack.length === 1) {
+          let first = stack.pop();
+          if (b === first + 2) {
+            result.push(`r${first}`);
+            result.push(`r${first+1}`);
+          } else if (b > first + 1) {
+            result.push(`r${first}-r${b - 1}`);
+          } else {
+            result.push(`r${first}`);
+          }
+        }
+      }
+    }
+    return result.join(',');
+  }
   /**
    * @param addr
    * @return {Object}

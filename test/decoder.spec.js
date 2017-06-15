@@ -92,4 +92,23 @@ describe('Decoder', () => {
         {addr: 0, op: 'orr', Rd: 'r12', Rn: 'r12', Op2: 0xc0, toString: 'orr r12,r12,0xc0'});
     });
   });
+  describe('Block Data Transfer', () => {
+    it('should decode Rlist', () => {
+      assert.equal(Decoder.decodeRlist(0x4000), 'r14');
+      assert.equal(Decoder.decodeRlist(0x5000), 'r12,r14');
+      assert.equal(Decoder.decodeRlist(0x7fff), 'r0-r14');
+      assert.equal(Decoder.decodeRlist(0x6d0d), 'r0,r2,r3,r8,r10,r11,r13,r14');
+      assert.equal(Decoder.decodeRlist(0x40f0), 'r4-r7,r14');
+    });
+    it('should decode PUSH', () => {
+      assert.include(Decoder.decode(0, 0x092d5000),
+        {addr: 0, cond: 'eq', op: 'push', Rn: 'r13', Rlist: 0x5000, toString: 'push r12,r14'});
+      assert.include(Decoder.decode(0, 0xe92d7fff),
+        {addr: 0, op: 'push', Rn: 'r13', Rlist: 0x7fff, toString: 'push r0-r14'});
+      assert.include(Decoder.decode(0, 0xe92d6d0d),
+        {addr: 0, op: 'push', Rn: 'r13', Rlist: 0x6d0d, toString: 'push r0,r2,r3,r8,r10,r11,r13,r14'});
+      assert.include(Decoder.decode(0, 0xe92d40f0),
+        {addr: 0, op: 'push', Rn: 'r13', Rlist: 0x40f0, toString: 'push r4-r7,r14'});
+    });
+  });
 });
